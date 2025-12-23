@@ -15,7 +15,7 @@ svocabList = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "
 svocabDict = {}
 sWe = np.random.normal(0, 0.02, size = (k_VocabSize, k_DModel))
 sWe[2] = np.zeros(k_DModel)
-sWpos = np.random.normal(0, 0.02, size = (k_VocabSize, k_DModel))
+sWpos = np.random.normal(0, 0.02, size = (k_ContextLength, k_DModel))
 sWq = np.random.normal(0, np.sqrt(2/(k_DModel+k_DKey)), size = (k_AttBlocks, k_Attheads, k_DModel, k_DKey))/np.sqrt(k_Attheads)
 sWk = np.random.normal(0, np.sqrt(2/(k_DModel+k_DKey)), size = (k_AttBlocks, k_Attheads, k_DModel, k_DKey))/np.sqrt(k_Attheads)
 sWv = np.random.normal(0, np.sqrt(1/(k_DModel)), size = (k_AttBlocks, k_Attheads, k_DModel, k_DModel))/np.sqrt(k_Attheads)
@@ -106,14 +106,20 @@ def fowardprop(input):
     E_soft_cache = np.empty((k_AttBlocks, k_Attheads, k_ContextLength, k_ContextLength))
     E_lin_cache = np.empty((k_ContextLength, k_DModel))
     E_relu_cache = np.empty((k_AttBlocks, k_ContextLength, k_DModel*4))
-    E = np.tile(sWe[2], (k_ContextLength, 1))
     svocabDict[" "] = 3
 
-    E[0] = sWe[0]
+    temp = np.zeros(k_VocabSize)
+    temp[2] = 1
+    We_to_E = np.zeros((k_ContextLength, k_VocabSize))
+    We_to_E[0, 0] = 1
     i = 1
     for j in input:
-        E[i] = sWe[svocabDict[j]]
+        We_to_E[i, [svocabDict[j]]] = 1
         i+=1
+    while(i<k_ContextLength):
+        We_to_E[i, 2] = 1
+        i+=1
+    E = We_to_E@sWe
 
     i = 0
     while(i<len(input)+1):
@@ -140,10 +146,10 @@ def fowardprop(input):
     E=E@sLW+sLB
     E=softmax(E)
 
-    return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache
+    return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E
 #------------------
 #BACKPROP
-def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache):
+def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E):
     global g_We 
     global g_Wpos 
     global g_Wq 
@@ -176,15 +182,33 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         Xhat_mean = E_midln_cache[currAttBlock, 1]*(np.mean((G*sLNGain[currAttBlock, 1])*E_midln_cache[currAttBlock, 1], axis = 1, keepdims=True))
         G= (1/np.sqrt(np.var(E_preln_cache[currAttBlock, 1], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 1]-np.mean(G*sLNGain[currAttBlock, 1], axis = 1, keepdims=True)-Xhat_mean)
         currAttHead = 0
+        G_preatt = np.zeros((k_ContextLength, k_DModel))
         while(currAttHead<k_Attheads):
+            g_Wv[currAttBlock, currAttHead]-=E_postln_cache[currAttBlock, 0].T@(E_soft_cache[currAttBlock, currAttHead].T@G)
+            V = E_postln_cache[currAttBlock, 0]@sWv[currAttBlock, currAttHead]
+            d_softmax = (E_soft_cache[currAttBlock, currAttHead])*(G@V.T-np.sum(E_soft_cache[currAttBlock, currAttHead]*(G@V.T), axis = 1, keepdims = True))
+            g_Wq -= (1/np.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax@E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead]
+            g_Wk -= (1/np.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]
+            G1 =  E_soft_cache[currAttBlock, currAttHead].T@G@sWv[currAttBlock, currAttHead].T
+            G2 = (1/np.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead])@sWq[currAttBlock, currAttHead].T
+            G3 = (1/np.sqrt(k_DKey))*d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]@sWk[currAttBlock, currAttHead].T
+            G_preatt += G1+G2+G3
             currAttHead+=1
-            
-        break
+        G=G_preatt
+        g_LNBias[currAttBlock, 0] -= np.sum(G, axis = 0)
+        g_LNGain[currAttBlock, 0] -= np.sum((E_midln_cache[currAttBlock, 0])*G, axis = 0)
+        Xhat_mean = E_midln_cache[currAttBlock, 0]*(np.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 1, keepdims=True))
+        G= (1/np.sqrt(np.var(E_preln_cache[currAttBlock, 0], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-np.mean(G*sLNGain[currAttBlock, 0], axis = 1, keepdims=True)-Xhat_mean)
         currAttBlock-=1
+    g_Wpos-=G
+    g_We -= We_to_E.T@G
 
+
+
+lr = 0.001
 
 g_We = np.zeros((k_VocabSize, k_DModel))
-g_Wpos = np.zeros((k_VocabSize, k_DModel))
+g_Wpos = np.zeros((k_ContextLength, k_DModel))
 g_Wq = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
 g_Wk = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
 g_Wv = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel))
@@ -196,19 +220,14 @@ g_LNGain = np.zeros((k_AttBlocks, 2, k_DModel))
 g_LNBias = np.zeros((k_AttBlocks, 2, k_DModel))
 g_LW = np.zeros((k_DModel, k_VocabSize))
 g_LB = np.zeros((k_VocabSize))
-
 i = 0
-lr = 0.01
-while(i<10):
-    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache = fowardprop(input)
+while(i<100):
+    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(input)
     prediction = decode(E)
     print(prediction)
-    
     loss, onehot_cache = findLoss(E, input)
     print(loss)
-
-    
-    backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache)
+    backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
     sLB+=g_LB*lr
     sLW+=g_LW*lr
     sMLPb2+=g_MLPb2*lr
@@ -217,4 +236,20 @@ while(i<10):
     sMLPW1+=g_MLPW1*lr
     sLNBias+=g_LNBias*lr
     sLNGain+=g_LNGain*lr
+    sWv+=g_Wv*lr
+    sWq+=g_Wq*lr
+    sWk+=g_Wk*lr
+    sWpos+=g_Wpos*lr
+    sWe+=g_We*lr
     i+=1
+
+print("------")
+testing = ["c"]
+E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(testing)
+prediction = decode(E)
+print(prediction)
+testing.append(prediction[1])
+
+E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(testing)
+prediction = decode(E)
+print(prediction)
