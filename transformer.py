@@ -1,8 +1,8 @@
 import numpy as np
 #------------------
 #PARAM DECLARATIONS
-k_DModel = 8 #32
-k_ContextLength = 4#8
+k_DModel = 12 #32
+k_ContextLength = 5#8
 k_VocabSize = 26+4 #plus four for start, end, pad, and space
 k_Attheads = 2
 k_AttBlocks = 1
@@ -94,7 +94,7 @@ def findLoss(E, input):
     return loss, onehot_cache
 #------------------
 #INPUT
-input = ["c", "a", "t"]
+input = []
 #------------------
 #FORWARD PROPAGATE
 def fowardprop(input):
@@ -107,6 +107,9 @@ def fowardprop(input):
     E_lin_cache = np.empty((k_ContextLength, k_DModel))
     E_relu_cache = np.empty((k_AttBlocks, k_ContextLength, k_DModel*4))
     svocabDict[" "] = 3
+    svocabDict["END_TOKEN"] = 1
+    svocabDict["START_TOKEN"] = 0
+    svocabDict["PAD_TOKEN"] = 2
 
     temp = np.zeros(k_VocabSize)
     temp[2] = 1
@@ -202,10 +205,11 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         currAttBlock-=1
     g_Wpos-=G
     g_We -= We_to_E.T@G
+    g_We[2] = np.zeros(k_DModel)
 
 
 
-lr = 0.001
+lr = 0.01
 
 g_We = np.zeros((k_VocabSize, k_DModel))
 g_Wpos = np.zeros((k_ContextLength, k_DModel))
@@ -241,10 +245,29 @@ while(i<100):
     sWk+=g_Wk*lr
     sWpos+=g_Wpos*lr
     sWe+=g_We*lr
+
+
+
+
+
+
+    g_We = np.zeros((k_VocabSize, k_DModel))
+    g_Wpos = np.zeros((k_ContextLength, k_DModel))
+    g_Wq = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
+    g_Wk = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
+    g_Wv = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel))
+    g_MLPW1 = np.zeros((k_AttBlocks, k_DModel, k_DModel*4))
+    g_MLPW2 = np.zeros((k_AttBlocks, k_DModel*4, k_DModel))
+    g_MLPb1 = np.zeros((k_AttBlocks, 1, k_DModel*4))
+    g_MLPb2 = np.zeros((k_AttBlocks, 1, k_DModel))
+    g_LNGain = np.zeros((k_AttBlocks, 2, k_DModel))
+    g_LNBias = np.zeros((k_AttBlocks, 2, k_DModel))
+    g_LW = np.zeros((k_DModel, k_VocabSize))
+    g_LB = np.zeros((k_VocabSize))
     i+=1
 
 print("------")
-testing = ["c"]
+testing = []
 E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(testing)
 prediction = decode(E)
 print(prediction)
