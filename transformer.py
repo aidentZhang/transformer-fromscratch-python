@@ -1,6 +1,6 @@
 import numpy as np
 from tqdm import tqdm # timing bar for nice looks
-
+print("YAYAA")
 #------------------
 #PARAM DECLARATIONS
 k_DModel = 256 #32
