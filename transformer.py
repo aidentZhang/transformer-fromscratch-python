@@ -6,8 +6,8 @@ from tqdm import tqdm # timing bar for nice looks
 k_DModel = 256 #32
 k_ContextLength = 8#8
 k_VocabSize = 26+5 #plus four for start, end, pad, and space      last one is no idea
-k_Attheads = 4
-k_AttBlocks = 2
+k_Attheads = 8
+k_AttBlocks = 4
 #these should all be the same
 k_DQuery = 64
 k_DKey = k_DQuery
@@ -23,7 +23,7 @@ sWk = np.random.normal(0, np.sqrt(2/(k_DModel+k_DKey)), size = (k_AttBlocks, k_A
 sWv = np.random.normal(0, np.sqrt(1/(k_DModel)), size = (k_AttBlocks, k_Attheads, k_DModel, k_DModel))/np.sqrt(k_Attheads)
 sMLPW1 = np.random.normal(0, np.sqrt(2/(k_DModel+4*k_DModel)), size = (k_AttBlocks, k_DModel, k_DModel*4))
 sMLPW2 = np.random.normal(0, np.sqrt(2/(k_DModel+4*k_DModel)), size = (k_AttBlocks, k_DModel*4, k_DModel))
-sMLPb1 = np.ones((k_AttBlocks, 1, k_DModel*4))
+sMLPb1 = np.zeros((k_AttBlocks, 1, k_DModel*4))
 sMLPb2 = np.zeros((k_AttBlocks, 1, k_DModel))
 sLNGain = np.ones((k_AttBlocks, 2, k_DModel)) #MULTIPLIED ELEMENT WISE
 sLNBias = np.zeros((k_AttBlocks, 2, k_DModel))
@@ -231,7 +231,7 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
 
 k_BatchSize = 16
-k_Alpha = 0.00002
+k_Alpha = 0.0001
 k_Beta1 = 0.9
 k_Beta2 = 0.98
 k_Epsilon = 0.00000001
@@ -301,8 +301,9 @@ with open('results.txt', 'w') as f:
     while(a<1):
         with tqdm(total=len(word_list)) as pbar:
             for word in word_list:
+                pbar.update(1)
+
                 if(len(word)<k_ContextLength):
-                    pbar.update(1)
                     amnt+=1
                     word = list(word)
                     E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word)
