@@ -286,7 +286,7 @@ translator = str.maketrans('', '', string.punctuation)
 
 word_list = []
 with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
-    while(len(word_list) < 29000):
+    while(len(word_list) < 100):
         x = next(f).lower()
         x = x.translate(translator)
         x = x.split()
