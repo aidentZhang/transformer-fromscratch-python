@@ -6,8 +6,8 @@ from tqdm import tqdm # timing bar for nice looks
 k_DModel = 256 #32
 k_ContextLength = 8#8
 k_VocabSize = 26+5 #plus four for start, end, pad, and space      last one is no idea
-k_Attheads = 8
-k_AttBlocks = 4
+k_Attheads = 4
+k_AttBlocks = 2
 #these should all be the same
 k_DQuery = 64
 k_DKey = k_DQuery
@@ -230,8 +230,8 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
 
 
-k_BatchSize = 16
-k_Alpha = 0.0001
+k_BatchSize = 50
+k_Alpha = 0.00005
 k_Beta1 = 0.9
 k_Beta2 = 0.98
 k_Epsilon = 0.00000001
@@ -286,7 +286,7 @@ translator = str.maketrans('', '', string.punctuation)
 
 word_list = []
 with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
-    while(len(word_list) < 10000):
+    while(len(word_list) < 29000):
         x = next(f).lower()
         x = x.translate(translator)
         x = x.split()
@@ -393,9 +393,13 @@ while(True):
     q = input("input_llm part of a word, a char, or something: ")
     q = list(q)
     k = len(q)
-    while k < k_ContextLength-1:
+    while k < k_ContextLength:
         E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(q)
         prediction = decode(E)
-        q.append(prediction[k+1])
+        loss, onehot_cache = findLoss(E, q)
+        # print(loss)
+        # print(prediction)
+        q.append(prediction[k])
+        # print(prediction[k])
         k+=1
     print(q)
