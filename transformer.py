@@ -1,19 +1,18 @@
 import numpy as np
 from tqdm import tqdm # timing bar for nice looks
+import params
 #------------------
 #PARAM DECLARATIONS
-k_DModel = 256 #32
-k_ContextLength = 8#8
-k_VocabSize = 26+5 #plus four for start, end, pad, and space      last one is no idea
-k_Attheads = 4
-k_AttBlocks = 2
+k_DModel = params.k_DModel #32
+k_ContextLength = params.k_ContextLength#8
+k_VocabSize = params.k_VocabSize #plus four for start, end, pad, and space      last one is no idea
+k_Attheads = params.k_Attheads
+k_AttBlocks = params.k_AttBlocks
 #these should all be the same
-k_DQuery = 64
+k_DQuery = params.k_DQuery
 k_DKey = k_DQuery
 #------------------
 #SETUP DATA STRUCTS
-svocabList = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-svocabDict = {}
 sWe = np.random.normal(0, 0.02, size = (k_VocabSize, k_DModel))
 sWe[2] = np.zeros(k_DModel)
 sWpos = np.random.normal(0, 0.02, size = (k_ContextLength, k_DModel))
@@ -44,13 +43,6 @@ sSoftmaxMask = np.nan_to_num(-np.inf*np.triu(np.ones((k_ContextLength, k_Context
 # sLB = np.ones((k_VocabSize)) #ADDED TO ALL TOKENS
 # E = [[1, 2]]
 #------------------
-#PRE PROCESS
-i = 4
-for j in svocabList:
-    svocabDict[j] = i
-    i+=1
-svocabDict[" "] = 3
-#------------------
 #TRANSFORMER FUNCTIONS
 def layerNorm(E, attLayer, prePostMLP):
     temp = np.nan_to_num((E-np.mean(E, axis = -1, keepdims = True))/np.sqrt((np.nan_to_num(np.var(E, axis = -1, keepdims = True), nan = 0.)+0.00001)))
@@ -65,7 +57,7 @@ def relu(E):
 def relu_deriv_elementwise(e):
     return 1 if e>0 else 0
 
-def decode(E):
+def decode(E, svocabList):
     temp = np.argmax(E, axis = -1)
     answer = []
     for i in temp:
@@ -85,7 +77,7 @@ def decode(E):
             answer.append("STA")
     return answer
 #------------------------------------------------------------------------------------------------------------------------------FINISH
-def findLoss(E, input_llm):
+def findLoss(E, input_llm, svocabDict):
     loss = 0
     i = 0
     onehot_cache = np.zeros((k_ContextLength, k_VocabSize))
@@ -107,7 +99,7 @@ def findLoss(E, input_llm):
 # input_llm = ["c", "a", "t"]
 #------------------
 #FORWARD PROPAGATE
-def fowardprop(input_llm):
+def fowardprop(input_llm, svocabDict):
     #------------------
     #CACHEING
     E_preln_cache = np.empty((k_AttBlocks, 2, k_ContextLength, k_DModel))
@@ -116,10 +108,7 @@ def fowardprop(input_llm):
     E_soft_cache = np.empty((k_AttBlocks, k_Attheads, k_ContextLength, k_ContextLength))
     E_lin_cache = np.empty((k_ContextLength, k_DModel))
     E_relu_cache = np.empty((k_AttBlocks, k_ContextLength, k_DModel*4))
-    svocabDict[" "] = 3
-    svocabDict["END_TOKEN"] = 1
-    svocabDict["START_TOKEN"] = 0
-    svocabDict["PAD_TOKEN"] = 2
+    
 
     padMask = np.zeros((k_ContextLength, k_ContextLength))
     padMask[:, len(input_llm)+1:k_ContextLength] = -np.inf
@@ -232,11 +221,11 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
 
 
-k_BatchSize = 16
-k_Alpha = 0.00002
-k_Beta1 = 0.9
-k_Beta2 = 0.98
-k_Epsilon = 0.00000001
+k_BatchSize = params.k_BatchSize
+k_Alpha = params.k_Alpha
+k_Beta1 = params.k_Beta1
+k_Beta2 = params.k_Beta2
+k_Epsilon = params.k_Epsilon
 
 g_We = np.zeros((k_VocabSize, k_DModel))
 g_Wpos = np.zeros((k_ContextLength, k_DModel))
@@ -286,33 +275,175 @@ import string
 
 translator = str.maketrans('', '', string.punctuation)
 
-word_list = []
+train = []
 with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
-    while(len(word_list) < 29000):
-        x = next(f).lower()
-        x = x.translate(translator)
-        x = x.split()
-        word_list+=x
+    while(len(train) < 1100):
+        train.append([])
+        while(len(train[-1])<100):
+            train[-1]+=next(f)
+
+num_times = params.num_times
 
 
+def embed(rule_list, case):
+    i = 0
+    while(i < len(rule_list)):
+        j=1
+        max_occ = rule_list[i]
+        while(j < len(case)-1):
+            if(max_occ == (case[j], case[j+1])):
+                case[j]+=case[j+1]
+                case.pop(j+1)
+                j-=1
+            j+=1
+        i+=1
+    return case
 
+with tqdm(total=len(train)) as pbar:
+    with open('bpe_rules.txt', 'r') as f:
+        rule_list = []
+        i = 0
+        while(i < num_times):
+            rule_list.append((next(f)[:-1].replace('\\n', '\n'), next(f)[:-1].replace('\\n', '\n')))
+            i+=1
+        for i in range(len(train)):
+            pbar.update(1)
+            train[i] = embed(rule_list, train[i])
+            # print(len(train[i])) max length is aroudn 200, howvers around 40-70 usually
+
+svocabDict = {}
+vocab_list = []
+svocabDict[" "] = 3
+svocabDict["END_TOKEN"] = 1
+svocabDict["START_TOKEN"] = 0
+svocabDict["PAD_TOKEN"] = 2
+i = 4
+with open('bpe_vocablist.txt', 'r') as f:
+    for line in f:
+        vocab_list.append(line[:-1].replace('\\n', '\n'))
+        svocabDict[vocab_list[-1]] = i
+        i+=1
 amnt = 0
 a = 0
 loss = 0
+
+
+# E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(train[0], svocabDict)
+# prediction = decode(E, vocab_list)
+# print(prediction)
+# loss, onehot_cache = findLoss(E, train[0], svocabDict)
+# print(loss)
+# backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
+
+#----------SINGLE EXAMPLE TRAINING
+# word = train[0]
+# with tqdm(total=1000) as pbar:
+#     with open('results.txt', 'w') as f:
+#         while(a<1000):
+#                 pbar.update(1)
+#                 if(len(word)<k_ContextLength):
+#                     word = list(word)
+#                     E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word, svocabDict)
+#                     prediction = decode(E, vocab_list)
+#                     # print(prediction)
+#                     loss, onehot_cache = findLoss(E, word, svocabDict)
+#                     backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
+#                     f.write(f"{loss}\n")
+#                 if(a%k_BatchSize == 0):
+#                     g_LB/=k_BatchSize
+#                     g_LW/=k_BatchSize
+#                     g_MLPb2/=k_BatchSize
+#                     g_MLPW2/=k_BatchSize
+#                     g_MLPb1/=k_BatchSize
+#                     g_MLPW1/=k_BatchSize
+#                     g_LNBias/=k_BatchSize
+#                     g_LNGain/=k_BatchSize
+#                     g_Wv/=k_BatchSize
+#                     g_Wq/=k_BatchSize
+#                     g_Wk/=k_BatchSize
+#                     g_Wpos/=k_BatchSize
+#                     g_We/=k_BatchSize
+
+#                     admt_We = k_Beta1*admt_We + (1-k_Beta1)*g_We
+#                     admt_Wpos = k_Beta1*admt_Wpos + (1-k_Beta1)*g_Wpos
+#                     admt_Wq = k_Beta1*admt_Wq + (1-k_Beta1)*g_Wq
+#                     admt_Wk = k_Beta1*admt_Wk + (1-k_Beta1)*g_Wk
+#                     admt_Wv = k_Beta1*admt_Wv + (1-k_Beta1)*g_Wv
+#                     admt_MLPW1 = k_Beta1*admt_MLPW1 + (1-k_Beta1)*g_MLPW1
+#                     admt_MLPW2 = k_Beta1*admt_MLPW2 + (1-k_Beta1)*g_MLPW2
+#                     admt_MLPb1 = k_Beta1*admt_MLPb1 + (1-k_Beta1)*g_MLPb1
+#                     admt_MLPb2 = k_Beta1*admt_MLPb2 + (1-k_Beta1)*g_MLPb2
+#                     admt_LNGain = k_Beta1*admt_LNGain + (1-k_Beta1)*g_LNGain
+#                     admt_LNBias = k_Beta1*admt_LNBias + (1-k_Beta1)*g_LNBias
+#                     admt_LW = k_Beta1*admt_LW + (1-k_Beta1)*g_LW
+#                     admt_LB = k_Beta1*admt_LB + (1-k_Beta1)*g_LB
+
+
+#                     advt_We = k_Beta2*advt_We + (1-k_Beta2)*np.square(g_We)
+#                     advt_Wpos = k_Beta2*advt_Wpos + (1-k_Beta2)*np.square(g_Wpos)
+#                     advt_Wq = k_Beta2*advt_Wq + (1-k_Beta2)*np.square(g_Wq)
+#                     advt_Wk = k_Beta2*advt_Wk + (1-k_Beta2)*np.square(g_Wk)
+#                     advt_Wv = k_Beta2*advt_Wv + (1-k_Beta2)*np.square(g_Wv)
+#                     advt_MLPW1 = k_Beta2*advt_MLPW1 + (1-k_Beta2)*np.square(g_MLPW1)
+#                     advt_MLPW2 = k_Beta2*advt_MLPW2 + (1-k_Beta2)*np.square(g_MLPW2)
+#                     advt_MLPb1 = k_Beta2*advt_MLPb1 + (1-k_Beta2)*np.square(g_MLPb1)
+#                     advt_MLPb2 = k_Beta2*advt_MLPb2 + (1-k_Beta2)*np.square(g_MLPb2)
+#                     advt_LNGain = k_Beta2*advt_LNGain + (1-k_Beta2)*np.square(g_LNGain)
+#                     advt_LNBias = k_Beta2*advt_LNBias + (1-k_Beta2)*np.square(g_LNBias)
+#                     advt_LW = k_Beta2*advt_LW + (1-k_Beta2)*np.square(g_LW)
+#                     advt_LB = k_Beta2*advt_LB + (1-k_Beta2)*np.square(g_LB)
+
+#                     sWe -= k_Alpha*(admt_We/(1-k_Beta1))/(np.sqrt(advt_We/(1-k_Beta2))+k_Epsilon)
+#                     sWpos -= k_Alpha*(admt_Wpos/(1-k_Beta1))/(np.sqrt(advt_Wpos/(1-k_Beta2))+k_Epsilon)
+#                     sWq -= k_Alpha*(admt_Wq/(1-k_Beta1))/(np.sqrt(advt_Wq/(1-k_Beta2))+k_Epsilon)
+#                     sWk -= k_Alpha*(admt_Wk/(1-k_Beta1))/(np.sqrt(advt_Wk/(1-k_Beta2))+k_Epsilon)
+#                     sWv -= k_Alpha*(admt_Wv/(1-k_Beta1))/(np.sqrt(advt_Wv/(1-k_Beta2))+k_Epsilon)
+#                     sMLPW1 -= k_Alpha*(admt_MLPW1/(1-k_Beta1))/(np.sqrt(advt_MLPW1/(1-k_Beta2))+k_Epsilon)
+#                     sMLPW2-= k_Alpha*(admt_MLPW2/(1-k_Beta1))/(np.sqrt(advt_MLPW2/(1-k_Beta2))+k_Epsilon)
+#                     sMLPb1 -= k_Alpha*(admt_MLPb1/(1-k_Beta1))/(np.sqrt(advt_MLPb1/(1-k_Beta2))+k_Epsilon)
+#                     sMLPb2 -= k_Alpha*(admt_MLPb2/(1-k_Beta1))/(np.sqrt(advt_MLPb2/(1-k_Beta2))+k_Epsilon)
+#                     sLNGain -= k_Alpha*(admt_LNGain/(1-k_Beta1))/(np.sqrt(advt_LNGain/(1-k_Beta2))+k_Epsilon)
+#                     sLNBias-= k_Alpha*(admt_LNBias/(1-k_Beta1))/(np.sqrt(advt_LNBias/(1-k_Beta2))+k_Epsilon)
+#                     sLW -= k_Alpha*(admt_LW/(1-k_Beta1))/(np.sqrt(advt_LW/(1-k_Beta2))+k_Epsilon)
+#                     sLB -= k_Alpha*(admt_LB/(1-k_Beta1))/(np.sqrt(advt_LB/(1-k_Beta2))+k_Epsilon)
+                    
+#                     g_We = np.zeros((k_VocabSize, k_DModel))
+#                     g_Wpos = np.zeros((k_ContextLength, k_DModel))
+#                     g_Wq = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
+#                     g_Wk = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey))
+#                     g_Wv = np.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel))
+#                     g_MLPW1 = np.zeros((k_AttBlocks, k_DModel, k_DModel*4))
+#                     g_MLPW2 = np.zeros((k_AttBlocks, k_DModel*4, k_DModel))
+#                     g_MLPb1 = np.zeros((k_AttBlocks, 1, k_DModel*4))
+#                     g_MLPb2 = np.zeros((k_AttBlocks, 1, k_DModel))
+#                     g_LNGain = np.zeros((k_AttBlocks, 2, k_DModel))
+#                     g_LNBias = np.zeros((k_AttBlocks, 2, k_DModel))
+#                     g_LW = np.zeros((k_DModel, k_VocabSize))
+#                     g_LB = np.zeros((k_VocabSize))
+#                 a+=1
+# E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word, svocabDict)
+# prediction = decode(E, vocab_list)
+# print(prediction)
+# loss, onehot_cache = findLoss(E, word, svocabDict)
+# print(loss)
+
+
+
+
+
 with open('results.txt', 'w') as f:
-    while(a<2):
-        with tqdm(total=len(word_list)) as pbar:
-            for word in word_list:
+    while(a<5):
+        with tqdm(total=len(train)) as pbar:
+            for word in train:
                 pbar.update(1)
 
                 if(len(word)<k_ContextLength):
                     amnt+=1
                     word = list(word)
-                    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word)
-                    prediction = decode(E)
+                    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word, svocabDict)
+                    prediction = decode(E, vocab_list)
                     # print(prediction)
-                    loss, onehot_cache = findLoss(E, word)
-                    # print(loss)
+                    loss, onehot_cache = findLoss(E, word, svocabDict)
                     backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
                     f.write(f"{loss}\n")
 
@@ -394,14 +525,16 @@ with open('results.txt', 'w') as f:
 while(True):
     q = input("input_llm part of a word, a char, or something: ")
     q = list(q)
+    q = embed(rule_list, q)
     k = len(q)
+    print(q)
     while k < k_ContextLength:
-        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(q)
-        prediction = decode(E)
-        loss, onehot_cache = findLoss(E, q)
+        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(q, svocabDict)
+        prediction = decode(E, vocab_list)
+        loss, onehot_cache = findLoss(E, q, svocabDict)
         # print(loss)
         # print(prediction)
         q.append(prediction[k])
-        # print(prediction[k])
+        print(prediction[k], end='')
         k+=1
-    print(q)
+    # print(q)
