@@ -34,8 +34,7 @@ with tqdm(total=num_times) as pbar:
                 else:
                     freq_dict[(tok_list[j], tok_list[j+1])] = 1
                 j+=1
-            f.write(f"{max_occ[0]}\n{max_occ[1]}\n")
-
+            f.write(f"{max_occ[0].replace('\n', '\\n')}\n{max_occ[1].replace('\n', '\\n')}\n")
             j = 0
             while(j < len(tok_list)-1):
                 if(max_occ == (tok_list[j], tok_list[j+1])):
@@ -52,7 +51,7 @@ with open('bpe_vocablist.txt', 'w') as f:
         if word not in tok_set:
             tok_set.add(word)
             vocab_list.append(word)
-            f.write(f"{word}\n")
+            f.write(f"{word.replace('\n', '\\n')}\n")
 
 # print(tok_list)
 # print(freq_dict[max_occ])
