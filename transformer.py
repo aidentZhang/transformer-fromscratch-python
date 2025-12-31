@@ -1,6 +1,5 @@
 import numpy as np
 from tqdm import tqdm # timing bar for nice looks
-print("YAYAA")
 #------------------
 #PARAM DECLARATIONS
 k_DModel = 256 #32
@@ -149,17 +148,17 @@ def fowardprop(input_llm):
     currAttBlock = 0
     while(currAttBlock < k_AttBlocks):
         E_preln_cache[currAttBlock, 0] = E.copy()
-        E, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
-        E_postln_cache[currAttBlock, 0] = E.copy()
+        E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
+        E_postln_cache[currAttBlock, 0] = E_ln.copy()
         currAttHead = 0
         while(currAttHead<k_Attheads):
-            E_soft_cache[currAttBlock, currAttHead] = softmax(1/np.sqrt(k_DKey) * E@sWq[currAttBlock, currAttHead]@(E@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
-            E+= E_soft_cache[currAttBlock, currAttHead]@(E@sWv[currAttBlock, currAttHead])
+            E_soft_cache[currAttBlock, currAttHead] = softmax(1/np.sqrt(k_DKey) * E_ln@sWq[currAttBlock, currAttHead]@(E_ln@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
+            E+= E_soft_cache[currAttBlock, currAttHead]@(E_ln@sWv[currAttBlock, currAttHead])
             currAttHead+=1
         E_preln_cache[currAttBlock, 1] = E.copy()
-        E, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
-        E_postln_cache[currAttBlock, 1] = E.copy()
-        E_relu_cache[currAttBlock] = relu(E@sMLPW1[currAttBlock]+sMLPb1[currAttBlock])
+        E_ln, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
+        E_postln_cache[currAttBlock, 1] = E_ln.copy()
+        E_relu_cache[currAttBlock] = relu(E_ln@sMLPW1[currAttBlock]+sMLPb1[currAttBlock])
         E += E_relu_cache[currAttBlock]@sMLPW2[currAttBlock]+sMLPb2[currAttBlock]
         currAttBlock+=1
     E_lin_cache = E.copy()
@@ -192,6 +191,7 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
     G = (E-onehot_cache)@sLW.T
     currAttBlock = k_AttBlocks-1
     while(currAttBlock>=0):
+        G_preln = G.copy()
         g_MLPb2[currAttBlock]+=np.sum(G, axis=0)
         g_MLPW2[currAttBlock]+=E_relu_cache[currAttBlock].T@G
         g_MLPb1[currAttBlock]+=np.sum(((G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock]))[0], axis=0)
@@ -200,9 +200,10 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         g_LNBias[currAttBlock, 1] += np.sum(G, axis = 0)
         g_LNGain[currAttBlock, 1] += np.sum((E_midln_cache[currAttBlock, 1])*G, axis = 0)
         Xhat_mean = E_midln_cache[currAttBlock, 1]*(np.mean((G*sLNGain[currAttBlock, 1])*E_midln_cache[currAttBlock, 1], axis = 1, keepdims=True))
-        G= (1/np.sqrt(np.var(E_preln_cache[currAttBlock, 1], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 1]-np.mean(G*sLNGain[currAttBlock, 1], axis = 1, keepdims=True)-Xhat_mean)
+        G= G_preln+(1/np.sqrt(np.var(E_preln_cache[currAttBlock, 1], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 1]-np.mean(G*sLNGain[currAttBlock, 1], axis = 1, keepdims=True)-Xhat_mean)
         currAttHead = 0
         G_preatt = np.zeros((k_ContextLength, k_DModel))
+        G_preln = G.copy()
         while(currAttHead<k_Attheads):
             g_Wv[currAttBlock, currAttHead]+=E_postln_cache[currAttBlock, 0].T@(E_soft_cache[currAttBlock, currAttHead].T@G)
             V = E_postln_cache[currAttBlock, 0]@sWv[currAttBlock, currAttHead]
@@ -214,11 +215,12 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
             G3 = (1/np.sqrt(k_DKey))*d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]@sWk[currAttBlock, currAttHead].T
             G_preatt += G1+G2+G3
             currAttHead+=1
-        G=G_preatt
+        G=G_preatt.copy()
+
         g_LNBias[currAttBlock, 0] += np.sum(G, axis = 0)
         g_LNGain[currAttBlock, 0] += np.sum((E_midln_cache[currAttBlock, 0])*G, axis = 0)
         Xhat_mean = E_midln_cache[currAttBlock, 0]*(np.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 1, keepdims=True))
-        G= (1/np.sqrt(np.var(E_preln_cache[currAttBlock, 0], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-np.mean(G*sLNGain[currAttBlock, 0], axis = 1, keepdims=True)-Xhat_mean)
+        G= G_preln+(1/np.sqrt(np.var(E_preln_cache[currAttBlock, 0], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-np.mean(G*sLNGain[currAttBlock, 0], axis = 1, keepdims=True)-Xhat_mean)
         currAttBlock-=1
     g_Wpos+=G
     g_We += We_to_E.T@G
@@ -230,8 +232,8 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
 
 
-k_BatchSize = 50
-k_Alpha = 0.00005
+k_BatchSize = 16
+k_Alpha = 0.00002
 k_Beta1 = 0.9
 k_Beta2 = 0.98
 k_Epsilon = 0.00000001
@@ -286,7 +288,7 @@ translator = str.maketrans('', '', string.punctuation)
 
 word_list = []
 with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
-    while(len(word_list) < 100):
+    while(len(word_list) < 29000):
         x = next(f).lower()
         x = x.translate(translator)
         x = x.split()
@@ -298,7 +300,7 @@ amnt = 0
 a = 0
 loss = 0
 with open('results.txt', 'w') as f:
-    while(a<1):
+    while(a<2):
         with tqdm(total=len(word_list)) as pbar:
             for word in word_list:
                 pbar.update(1)
