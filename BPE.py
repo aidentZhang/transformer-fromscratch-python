@@ -1,10 +1,10 @@
 import numpy as np
 from tqdm import tqdm # timing bar for nice looks
-
+import params
 tok_list = []
 vocab_list = []
 tok_set = set()
-with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
+with open('romeo_juliet.txt', 'r') as f:
     tok_list = f.read()
 tok_list = list(tok_list)
 
@@ -14,7 +14,7 @@ for character in tok_list:
         vocab_list.append(character)
 
 
-num_times = 500
+num_times = params.num_times
 i = 0
 with tqdm(total=num_times) as pbar:
     with open('bpe_rules.txt', 'w') as f:

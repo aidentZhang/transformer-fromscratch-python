@@ -277,13 +277,12 @@ translator = str.maketrans('', '', string.punctuation)
 
 train = []
 with open('romeo_juliet_proj_gutenburg.txt', 'r') as f:
-    while(len(train) < 1100):
+    while(len(train) < 1500):
         train.append([])
-        while(len(train[-1])<100):
+        while(len(train[-1])<50):
             train[-1]+=next(f)
 
 num_times = params.num_times
-
 
 def embed(rule_list, case):
     i = 0
@@ -309,7 +308,7 @@ with tqdm(total=len(train)) as pbar:
         for i in range(len(train)):
             pbar.update(1)
             train[i] = embed(rule_list, train[i])
-            # print(len(train[i])) max length is aroudn 200, howvers around 40-70 usually
+            # print(len(train[i])) #max length is aroudn 200, howvers around 40-70 usually
 
 svocabDict = {}
 vocab_list = []
@@ -432,7 +431,7 @@ loss = 0
 
 
 with open('results.txt', 'w') as f:
-    while(a<5):
+    while(a<1):
         with tqdm(total=len(train)) as pbar:
             for word in train:
                 pbar.update(1)
@@ -537,4 +536,5 @@ while(True):
         q.append(prediction[k])
         print(prediction[k], end='')
         k+=1
+    print("")
     # print(q)

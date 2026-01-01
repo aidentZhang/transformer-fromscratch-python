@@ -1,6 +1,6 @@
 #PARAM DECLARATIONS
 k_DModel = 128 #32
-k_ContextLength = 128#8
+k_ContextLength = 64#8
 k_VocabSize = 567+5 #plus four for start, end, pad, and space      last one is no idea
 k_Attheads = 2
 k_AttBlocks = 4
