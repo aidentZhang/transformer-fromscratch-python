@@ -1,12 +1,17 @@
 import numpy as np
 from tqdm import tqdm # timing bar for nice looks
+from pathlib import Path
 import params
 tok_list = []
 vocab_list = []
 tok_set = set()
-with open('romeo_juliet.txt', 'r') as f:
-    tok_list = f.read()
-tok_list = list(tok_list)
+directory_path = Path('./Training_Data') 
+files_list = [p for p in directory_path.iterdir() if p.is_file()]
+for file in files_list:
+    with open(file, 'r') as f:
+        tok_list_temp = f.read()
+        tok_list_temp = list(tok_list_temp)
+        tok_list+=tok_list_temp
 
 for character in tok_list:
     if character not in tok_set:
@@ -25,7 +30,6 @@ with tqdm(total=num_times) as pbar:
             freq_dict[max_occ] = 1
             j = 1
             while j < len(tok_list)-1:
-
                 if (tok_list[j], tok_list[j+1]) in freq_dict:
 
                     freq_dict[(tok_list[j], tok_list[j+1])]+=1
