@@ -13,3 +13,4 @@ k_Alpha = 0.0002
 k_Beta1 = 0.9
 k_Beta2 = 0.999
 k_Epsilon = 0.00000001
+k_Lambda = 0.01

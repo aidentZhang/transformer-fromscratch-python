@@ -219,6 +219,7 @@ k_Alpha = params.k_Alpha
 k_Beta1 = params.k_Beta1
 k_Beta2 = params.k_Beta2
 k_Epsilon = params.k_Epsilon
+k_Lambda = params.k_Lambda
 
 g_We = mx.zeros((k_VocabSize, k_DModel))
 g_Wpos = mx.zeros((k_ContextLength, k_DModel))
@@ -395,19 +396,19 @@ if(True):
                         advt_LB = k_Beta2*advt_LB + (1-k_Beta2)*mx.square(g_LB)
 
                 
-                        sWe -= k_Alpha*(admt_We/(1-k_Beta1**t))/(mx.sqrt(advt_We/(1-k_Beta2**t))+k_Epsilon)
-                        sWpos -= k_Alpha*(admt_Wpos/(1-k_Beta1**t))/(mx.sqrt(advt_Wpos/(1-k_Beta2**t))+k_Epsilon)
-                        sWq -= k_Alpha*(admt_Wq/(1-k_Beta1**t))/(mx.sqrt(advt_Wq/(1-k_Beta2**t))+k_Epsilon)
-                        sWk -= k_Alpha*(admt_Wk/(1-k_Beta1**t))/(mx.sqrt(advt_Wk/(1-k_Beta2**t))+k_Epsilon)
-                        sWv -= k_Alpha*(admt_Wv/(1-k_Beta1**t))/(mx.sqrt(advt_Wv/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPW1 -= k_Alpha*(admt_MLPW1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW1/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPW2-= k_Alpha*(admt_MLPW2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW2/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPb1 -= k_Alpha*(admt_MLPb1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb1/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPb2 -= k_Alpha*(admt_MLPb2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb2/(1-k_Beta2**t))+k_Epsilon)
-                        sLNGain -= k_Alpha*(admt_LNGain/(1-k_Beta1**t))/(mx.sqrt(advt_LNGain/(1-k_Beta2**t))+k_Epsilon)
-                        sLNBias-= k_Alpha*(admt_LNBias/(1-k_Beta1**t))/(mx.sqrt(advt_LNBias/(1-k_Beta2**t))+k_Epsilon)
-                        sLW -= k_Alpha*(admt_LW/(1-k_Beta1**t))/(mx.sqrt(advt_LW/(1-k_Beta2**t))+k_Epsilon)
-                        sLB -= k_Alpha*(admt_LB/(1-k_Beta1**t))/(mx.sqrt(advt_LB/(1-k_Beta2**t))+k_Epsilon)
+                        sWe -= k_Alpha*(((admt_We/(1-k_Beta1**t))/(mx.sqrt(advt_We/(1-k_Beta2**t))+k_Epsilon))+sWe*k_Lambda)
+                        sWpos -= k_Alpha*(((admt_Wpos/(1-k_Beta1**t))/(mx.sqrt(advt_Wpos/(1-k_Beta2**t))+k_Epsilon))+sWpos*k_Lambda)
+                        sWq -= k_Alpha*(((admt_Wq/(1-k_Beta1**t))/(mx.sqrt(advt_Wq/(1-k_Beta2**t))+k_Epsilon))+sWq*k_Lambda)
+                        sWk -= k_Alpha*(((admt_Wk/(1-k_Beta1**t))/(mx.sqrt(advt_Wk/(1-k_Beta2**t))+k_Epsilon))+sWk*k_Lambda)
+                        sWv -= k_Alpha*(((admt_Wv/(1-k_Beta1**t))/(mx.sqrt(advt_Wv/(1-k_Beta2**t))+k_Epsilon))+sWv*k_Lambda)
+                        sMLPW1 -= k_Alpha*(((admt_MLPW1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW1/(1-k_Beta2**t))+k_Epsilon))+sMLPW1*k_Lambda)
+                        sMLPW2-= k_Alpha*(((admt_MLPW2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW2/(1-k_Beta2**t))+k_Epsilon))+sMLPW2*k_Lambda)
+                        sMLPb1 -= k_Alpha*(((admt_MLPb1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb1/(1-k_Beta2**t))+k_Epsilon))+sMLPb1*k_Lambda)
+                        sMLPb2 -= k_Alpha*(((admt_MLPb2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb2/(1-k_Beta2**t))+k_Epsilon))+sMLPb2*k_Lambda)
+                        sLNGain -= k_Alpha*(((admt_LNGain/(1-k_Beta1**t))/(mx.sqrt(advt_LNGain/(1-k_Beta2**t))+k_Epsilon))+sLNGain*k_Lambda)
+                        sLNBias-= k_Alpha*(((admt_LNBias/(1-k_Beta1**t))/(mx.sqrt(advt_LNBias/(1-k_Beta2**t))+k_Epsilon))+sLNBias*k_Lambda)
+                        sLW -= k_Alpha*(((admt_LW/(1-k_Beta1**t))/(mx.sqrt(advt_LW/(1-k_Beta2**t))+k_Epsilon))+sLW*k_Lambda)
+                        sLB -= k_Alpha*(((admt_LB/(1-k_Beta1**t))/(mx.sqrt(advt_LB/(1-k_Beta2**t))+k_Epsilon))+sLB*k_Lambda)
                         
                         g_We*=0
                         g_Wpos*=0
