@@ -2,16 +2,34 @@ import numpy as np
 from tqdm import tqdm # timing bar for nice looks
 from pathlib import Path
 import params
+
+
+
+# import time
+
+# start = time.time()
+# print("hello")
+# end = time.time()
+# print(end - start)
+
+
+
+
 tok_list = []
 vocab_list = []
 tok_set = set()
-directory_path = Path('./Training_Data') 
+directory_path = Path('./Training_Data/raw') 
 files_list = [p for p in directory_path.iterdir() if p.is_file()]
 for file in files_list:
-    with open(file, 'r') as f:
-        tok_list_temp = f.read()
-        tok_list_temp = list(tok_list_temp)
-        tok_list+=tok_list_temp
+    try:
+        if(str(file)[-6:-4]!='_f'):
+            print(file)
+            with open(file, 'r') as f:
+                tok_list_temp = f.read()
+                tok_list_temp = list(tok_list_temp)
+                tok_list+=tok_list_temp
+    except:
+        print("error opening a file")
 
 for character in tok_list:
     if character not in tok_set:
@@ -50,12 +68,14 @@ with tqdm(total=num_times) as pbar:
 
 tok_set = set()
 vocab_list = []
-with open('bpe_vocablist.txt', 'w') as f:
-    for word in tok_list:
-        if word not in tok_set:
-            tok_set.add(word)
-            vocab_list.append(word)
-            f.write(f"{word.replace('\n', '\\n')}\n")
+with open('Training_Data/tokenized/train.txt', 'w') as t:
+    with open('bpe_vocablist.txt', 'w') as f:
+        for word in tok_list:
+            t.write(f"{word.replace('\n', '\\n')}\n")
+            if word not in tok_set:
+                tok_set.add(word)
+                vocab_list.append(word)
+                f.write(f"{word.replace('\n', '\\n')}\n")
 
 # print(tok_list)
 # print(freq_dict[max_occ])
