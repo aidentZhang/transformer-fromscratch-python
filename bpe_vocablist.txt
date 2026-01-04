@@ -1,1073 +1,4985 @@
-M
-ACBET
-H
-\n
+MACBETH
+\n\n
 by 
-Wi
-ll
-i
-am
- 
-S
-ha
-k
-es
-pear
+William
+ S
+hakespear
 e
-\nC
-on
-t
-ent
-s
-AC
-T
- I
-\nS
-cene 
-I
-. 
-An
-op
-en 
-P
-la
-ce
-.\nScene 
-II
-. A 
-C
-p
-n
-ear 
-For
-res
-A
- h
-ea
-th
-V
-Ro
-om 
-in the 
-a
-. I
-ver
-nes
-s. 
-A 
-in 
-Macbeth
-’s 
-st
-le
-. The 
-e. 
-Be
-fore 
-the 
-L
-o
-b
-.\n\n
-our
-t 
-with
-thou
-no
-ther 
-Par
-k 
-or 
-aw
-, 
-with a 
-g
-ate 
-lea
-d
-ing 
-to the 
-of
- st
-hea
-ar
-ve
- the 
-m
-id
-a 
-ul
-dr
-on 
-B
-il
-ing
-F
-fe
-Mac
-du
-ff
-En
-land
-King
-D
-un
-sin
-an
-oun
-ry 
-:
- a 
-W
-ood 
-vi
-w
-ca
-be
-part 
-of the 
-in
-fi
-el
-.\n
-r
-at
-is 
-er
+\n
+Per
 son
-æ
-DU
-N
-CA
-K
-of 
-co
+s 
+Re
+present
+ed
+D
+UN
+C
+AN
+, 
+King of 
+S
+cot
+land
 .\nM
-ALCOLM
-his 
-ON
 AL
+OL
+M
+, his 
+on
+.\nD
+ON
+B
+AIN
+ACBETH
 G
 en
+er
 al 
+in the 
+King's 
+Ar
+m
 y
 .\nB
-AN
-Q
-U
+QU
 O, 
-.\nMACDUFF
+ACDUFF
 No
 ble
 man 
-EN
+of 
+.\n
+LEN
+N
 O
 X
-ROSS
-E
-IT
+RO
 SS
+ENT
+E
+I
+TH
+ANG
+US, 
+CA
+ESS
 .\nF
-to 
-Banqu
+LE
+, S
+on to 
+an
+quo
 .\nS
-AR
-l
- of 
-or
-u
-mber
-and, 
-li
-sh
+W
+ARD
+Earl of 
+North
+umber
+land, 
+of the 
+English 
+For
 ces
 Y
+T
 an 
-f
-c
+Offic
  a
-tt
-end
-ct
-ti
-ol
-di
+ttend
+ing 
+on 
+Macbe
+th
+OY
+Mac
+du
+ff
+An 
+Do
+ctor
+. A
+ch 
+oldier
+. A 
+P
+or
 ter
-d 
-LADY MACBETH.\n
-LADY M
-ACDUFF
-.\nG
-om
-Lad
-y 
+. 
+l
+d\n
+.\n\n
+LADY 
+Gentle
+woman
+Lady 
 .\nH
-, and 
-ree 
-it
-ch
+EC
+AT
+,
+and 
+three 
+itch
+es
+.\n\nL
 ord
 s, 
-en, 
+men, 
+ers, 
+Soldier
 urder
-ant
-s and 
-sen
-s.\n
+Attendant
+s,\n
+ and 
+essenger
+s.\n\n
 The 
-ho
-st 
+h
+ost 
+qu
 o 
-and 
-se
-par
-tion
-CEN
+sever
+other 
+A
+pp
+ar
+ition
+s
+.\n\nSCENE
 : 
+In
+ the 
 end 
+F
+our
 th 
+c
 t, 
-;
- th
-rou
-gh
+in 
+England
+; th
+rough
+res
+t\n
+la
 y, 
 ; and 
-ef
+chief
 ly 
 at 
-\nTh
-er 
+'s 
+Ca
+stle
+\n\nACT I
+.\n\nSCENE I
+op
+en 
+lace
+. Th
+und
+er and 
+L
 ight
-IRST
- WITCH.\n
-Wh
- shall 
-we 
-eet 
+ning
+.\n\n[Enter
+ three 
+.]\n\n
+FIRST 
+IT
+CH
+When
+ shall
+ we 
+meet 
 again
 ?\n
+ th
 under
 light
+n
 ing, 
-ra
-h
-ur
+or 
+rain
+?\n\nSECOND 
+hur
 ly
-e,\n
-lo
-TH
-RD
-That 
-will 
-be 
+bur
+d
+one,\n
+batt
+le
+lost 
+won
+.\n\nTHIRD 
+.\nThat 
+will be 
 ere 
- s
+the 
+set 
+of s
+un
+.\n\nFIRST 
 Where 
-pla
-on the 
-Th
+place
+Upon the 
+hea
+.\nTh
+to 
 with 
-I 
-com
-e, 
+.\nI 
+come, 
+Gra
+ym
 al
-!\n
+kin
+!\n\n
+ALL
+.\nP
 ad
 do
 ck 
 call
+:--
+anon
+:--\n
+Fa
 ir 
-oul
+is 
+foul
+, and 
+ is 
 fair
 :\n
+H
+over
+ through
 fo
- and 
+g
+f
+il
 thy 
-ir
-.\n[Exeunt
-.]\nSCEN
-E 
-\nA
-m 
-Enter 
+air
+.\n\n[
+es 
+van
+ish
+\n\nSCENE I
+amp
+ 
+near 
+.\n\n[A
+larum
+ with
+in
+. Enter 
+King 
 can
 col
+b
 ain
+no
 x
-ee
-ed
-Cap
-ta
-What 
-bloo
-dy 
+,\n
+meet
+ing
+ a b
+eed
+.]\n\nD
+.\nWhat 
+bloody 
+that
 ? 
 He 
 can 
-re
-por
-,\n
+rep
+t,\n
 As 
+see
 me
-ght, 
-v
-\nThe 
+ by 
+his 
+p
+ligh
+revol
 new
 est 
-This 
+stat
+e.\n\n
+.\nThis 
 is the 
+ser
 ge
-o, 
-like 
+Who, 
+like a 
 good 
-ou
-ght
-’
+hard
+y 
+oldi
+er, 
+ough
+'
+st 
 my 
-ap
-.—
+cap
+t
+iv
+ity
+.--
 Ha
-bra
-ve 
+il, 
+brave 
 friend
+!\n
 ay 
-know
+to the 
+king
+knowled
 ge 
 bro
 \nAs 
-thou 
+thou d
+idst 
 leave 
-OL
-ER
+it
+.\n\nS
+OLDIER.\n
+oub
 ful 
 it 
+st
 ood
 ;\n
-tw
+two 
 sp
 ent 
-wi
-ers 
-that 
+sw
+im
+mer
+s that 
 do 
 cl
-to
-ther
+together
 \nAnd 
+cho
 ke 
 their 
-s 
-(
+art
+. The 
+merc
+ess 
+don
+w
+,--\n
+Wor
 to be 
+a 
+re
+bel
+,--
 for 
-to th
-es 
-nat
-ure
+\nThe 
+ul
+ip
+villain
+ies 
+nature
 Do 
-sw
-upon
- him
-)
+arm
+upon him
 from the 
+ester
 n 
-les
-\nO
-f 
-all
+is
+es\n
+Of 
+ker
+s and 
+gall
 ow
+gla
 ses 
-up
+sup
+li
 ;\nAnd 
-tun
- his 
-dam
+fortun
+e, 
+on his 
+damn
 ed 
-qu
+quarrel
+ s
+mil
 ,\nS
-’d 
+how
+'d 
 wh
+e. 
 But 
+all
 too 
-eak
-For 
-Macbe
+weak
+;\nFor
+ b
+rave 
 well
  he 
-des
-erv
+deserv
+that 
 nam
-is
+Dis
+dain
+with his 
+br
 and
-ish
+ish'd 
 eel
-Which
+,\nWhich
 mo
-ex
-cu
-on, 
-car
+k
+'d with
+ bloo
+dy 
+exec
+ution
+Like 
+val
+min
+ion
+,\nC
+v
 out 
-pas
+pass
 ag
-ill
+Till
 fa
+c'd 
 the s
-Whi
-ch 
-ne
+ve
+ne'er
  sh
 ook
-e 
-are
-we
-ll 
-him
+ hand
+nor
+ade 
+far
+ew
+ell 
+to him
+,\nT
+ill
+sea
 him 
-,\nAnd 
-our 
+na
+ve 
+cha
+s,\nAnd 
+fix
+'d his 
+head 
+upon 
+our b
+att
 ment
-O 
-ant 
-ous
+.\n\nD
+.\nO 
+valiant 
+cousin
 !
- w
-gentle
-man
+ wor
+gentleman
+!\n\nS
 ence 
+gin
+s his 
 ction
-hi
-ck
-ful
-brea
+\nS
+reck
+ st
+dir
+eful
+break
+;\nSo 
 from
  that 
 ring
-for
-em
+, wh
+comfort 
+seem
+'d to 
+com
+e\n
 ell
+s. 
 Mar
-mar
-so
-j
-us
-ce 
+mark
+No 
+soon
+er 
+justice 
+ha
 d, 
-arm
-’d
+'d,\n
 Com
 these 
-pp
+sk
+ipp
 s to 
-tru
-the
-s,\n
+trust 
+their
+ h
+Nor
 ey
-ord, 
- m
+lord, 
+sur
+vanta
+ge,\n
+With 
+fur
+up
+lies 
+of m
+,\nBe
+ a 
+fresh
+ as
 sa
 ma
 not 
-r 
+is\n
+Our 
+captain
+th and 
+?\n\nS
+es;\n
 row
-are 
-.\nI
-I s
+ea
+es, 
+are the 
+lion
+.\nIf 
+I say 
 oo
 th, 
- must 
+I must 
+report 
 they 
-ere
-char
-ble 
+ere\n
+non
+charg
+ d
+ouble 
+cra
+ck
+s;\n
+So 
+the
+y\n
+red
+ou
+bled 
 ro
 kes 
+upon the 
+e:\n
 Ex
+cept 
+ant 
 ba
-king
+ree
+ w
 ound
- me
-mor
-z
+Or
+ m
+emor
+iz
+e 
+another 
+ol
 go
-cannot 
+a
+I cannot 
 tell
-—
 I am 
+int
+; my 
 ga
+sh
+cry 
+for
+elp
+.\nSo 
  thy 
 word
-come 
+become 
 thee 
 as 
-ey 
-bo
-et 
-.\n[Ex
-ten
-de
-.]\n
+wound
+They 
+sma
+ of
+ hon
+ both
+Go, 
+get 
+him
+ur
+.\n\n[Exit 
+attend
+Who 
 comes 
-here
-?\nM
-wor
+here?\n\n
+.\nThe 
+worthy 
+Than
 e of 
-look
+Ro
+ss
+EN
+hast
+looks 
+through
+ his 
 eyes
 ! 
 should 
 he 
+look
 \nThat 
 speak
-ran
-e.\n
-’st 
+ things 
+stran
+.\n\n[Enter 
+ROS
+S.\n
+God 
+save 
+King
+!\n\nD
+.\nWh
+cam
+'st thou
 than
-rom
+e?\n\n
+From 
 if
 great 
-,\nWh
-pe
+ers 
+fl
+And 
+our p
 le 
-old
+cold
 .\nN
-self
+way 
+himself
+, with 
 ri
-si
+ble 
+number
+ist
+ed by 
 most 
 dis
-tra
-,\nThe 
-con
-pro
+loy
+traitor
+aw
+or, 
+beg
+an a
+ dis
+conf
+ct
+bri
+de
+gro
+om
+in p
+of
+Con
+fr
 ted 
+elf
 -
-po
-ous 
-gain
-pi
-lu
-rea
+par
+ison
+Po
+int 
+against 
+point 
+bell
+i
+ous, 
+'gainst 
+ing his 
+ spirit
+and, 
+concl
+ud
+e,\n
+victor
+fell 
+us
+Great 
+happ
+iness
+That 
 now
-ay
-’ 
+o, 
+way
+s' 
+king, 
 ves 
-ould 
-ig
- him 
-bu
-of his 
+position
+ would 
+we 
+ign
+ him
+ial
+ of his 
 men
-sed 
+\nT
+se
+Saint 
+'s
+inch
+ thousand 
+ll
+our 
+gener
+use
+.\nNo 
 more 
+ shall 
+ceiv
+Our
+ bo
+som
+ in
 est
+go 
 pr
-pres
+oun
+ce 
+present 
 death
+,\nAnd 
 form
-ll s
-ee 
-hath 
+title 
+gr
+eet 
+I'll
+ see 
+one.\n\n
+he hath 
+lo
+st, 
+noble 
 hath
-ster
-where 
-fe 
+.\n\n[Exeunt.]\n\n\n\nSCENE I
+II
+ hea
+Th
+. E
+nter
+hast 
+thou
+ be
+en, 
+sister
+K
+ sw
+IRD 
+ister
+?\n\nFIRST 
+.\nA
+ sa
+wife 
 had 
+ch
 ut
+s in
  her 
-d, and 
-“
-ive 
-,
-”
+moun
+'d, and 
+'d
+"
+Give 
+thee, 
+wit
 ru
 mp
-,\nI
-’ll 
-I’ll 
- WIT
+r
+cri
+usband
+one, 
+master 
+o' the 
+ig
+:\nBut 
+ a s
+ie
+ither
+And, 
+without 
+tail
+,\nI'll 
+I'll 
+.\n\nSECOND 
+.\nI'll 
 give 
 a w
 ind
+.\nThou 
 art 
-And 
-other
-self 
+kind
+.\nAnd 
+I 
+another
+I m
+yself
 have 
+all the 
+other
+:\nAnd 
 very 
+por
 ts 
-low
+blow
 ,\nA
-\nI
+quar
+know
+I'
+ship
+man's 
+ard
 I will 
-dra
+ry 
+y:\n
 leep
+neither 
 night 
-day
+ day
+\nH
 ang
-se 
+upon his 
+ent
+house 
 shall 
+live 
+a man 
+bid
 ear
+ven
 night
 ine 
-ine
-te
+times 
+Shall
+wind
+le, 
+eak
+bar
+k 
+cannot 
+be 
+lost
+Yet 
+shall be 
+temp
+to
+.--\n
+Look
  what 
+I hav
+e.\n\nS
+ECOND 
+ me, 
+show
+ me.\n\n
+.\nHere 
 I have 
-t’s 
-mb
-ome
-war
+a p
+t's 
+umb
+,\nW
+home
+ward 
 did 
-.\n[
+come
+rum
+a d
+ doth 
+we
+ir
+d 
+hand 
+ster
+s of the 
 ,\nTh
 us 
-go 
 ab
+out, 
 out
+:\nTh
+thin
 e, and 
+thri
+e,\nAnd 
+, to 
 make 
-!—
+up 
+ine
+eace
+!--
+charm
 ound 
-.\nEnter 
-.\nMACBETH.\n
-day 
+.]\n\nM
+ a d
+seen
+.\n\nB
 O.\n
 How 
-ar 
-?
+far 
+is't 
+?--
+What 
+are 
+thes
+with
 so 
- the
-,\nThat 
-loo
+ild 
+in their
+tt
+e,\nThat 
+look 
+like the 
+bit
+ants 
+earth
 yet 
+on't
+ive 
 you
+ugh
+man
  may 
+question
 You
-By 
- at 
-her 
- her
-your 
-bear
-id 
-me 
-pre
-you 
-if 
-what 
+ seem
  to 
-sha
-lt 
+understand 
+me,\n
+By 
+each
+ at 
+once 
+her 
+fing
+lay
+ing\n
+Upon
+ her
+lip
+you should 
+women
+your b
+ds 
+bid 
+me to 
+inter
+pre
+you are 
+so
+.\n\nMACBETH
+, if 
+you 
+;--
+what 
+ll 
+mis
+halt 
+fter
+!\n\nB
+Good 
 sir, 
+why 
 fear
-ame 
-re 
-sti
-eed
-ard
+\nTh
+sound 
+name 
+truth
+Are 
+ye 
+anta
+ic
+, or
+indeed
+\nWh
+ich 
+outw
 My 
+part
+ner
 You 
-gra
-To 
-you s
-pea
+ pres
+grace 
+di
+\nOf 
+hav
+ing and 
+royal
+ra
+pt 
+withal
+to me 
+ speak 
 not
+If 
+into the 
 s of 
-time
+tim
 say 
 which 
+gra
+ will 
+grow
+which
+ then 
 me, 
-g 
+who 
+nor 
 Your 
+fav
+your 
+hat
+ess
+ than 
 grea
-mu
- sha
- thou 
-one
+.\nNot 
+much 
+ier
+.\nThou
+ shalt 
+though
+ thou
+ be 
+none
 all 
-ACBETH.\n
-im
-per
-ct 
- me 
-dea
-know 
-ow 
-ves
+ta
+perf
+ect 
+tell me 
+mor
+el
+death 
+I know 
+;\nBut 
+how 
+liv
+es,\n
+ pro
+sper
+ous 
+s not 
+pro
+ef
+than 
+. S
  wh
 ence
 this 
+strange 
  this 
-\nWi
- su
+last
+you s
+top
+ way
+\nWith
+ such
 ph
 et
-anish
- them
+eet
+Speak
+, I 
+charge 
+.]\n\nB
+ub
+bl
+the w
+at
+of them
+ither 
+?\n\nM
+.\nIn
 cor
-su
+brea
+Would 
+stay
+Were 
+such
 here 
-son 
-pri
-s, and 
+ ab
+Or 
+ten 
+on the 
+takes 
+reason
+ pr
+children
+ shall be 
+too
+; w
+it not 
+?\n\nB
+To 
+self
+same 
+tun
+e and 
+Wh
+o's 
+[Enter 
+An
+king 
+hath 
+ily 
+receiv
+'d, 
+,\nThe 
+s of
+succ
+: and 
+when he 
+read
+s\n
+Thy 
+person
+vent
 ure 
-der
-pra
+fight
+His 
+wonder
+prais
+cont
+end
+\nWhich
+ should 
+thine 
+:
+enc
+ that
+In 
+view
+o'er
+rest 
+day
+,\nHe 
+find
+rank
 thing
+thyself
+St
+ran
+imag
+es of 
+ick
  as 
-ever
+me 
+po
+ po
+every 
 one 
+bear
 in his 
-them 
-own 
+kingdom
+def
+them
+ down
+ before 
+US.\n
 We 
+sent
 \nTo 
 from 
- ma
- than
-her
+ master
+thank
+On
+to her
+ld 
+into 
+sight
+Not 
+pay 
+thee
+earn
+of a 
+ him, 
  thee 
- whi
+ which
+ ad
+dition
+For 
 it is 
+e.\n\nB
 What, 
+devil
+tru
+ why 
+you d
+me\n
 orrow
+bes
+?\n\n
 was 
- heav
-ju
-life
-ose 
-ay, 
+lives 
+yet
+vy 
+judg
+em
+life\n
+Which
+es to 
+ther
+e was 
+comb
+'d\n
+With
+ those 
+way, 
+ did 
+id
 den
-coun
-ry
-rown
-.] 
-[
+ge, 
+\nHe 
+labour
+countr
+y's 
+treason
+al, 
+'d and 
+prov
+ed,\n
+Have 
+thr
+own
+[Aside.] 
+:\nThe 
+great
+beh
+your p
+you not 
+hope 
+gave 
+rom
 no 
-them
-ght 
-’tis 
-tri
-eep
-gu
-you, 
-; 
-gi
-ven
- my 
-hear
-nock
-use 
 less 
-.\nMy 
-but 
+That, 
+trust
+hom
+ight 
+unto the 
+crown
+,\nB
+ides 
+. But 
+'tis 
+tent
+our h
+instru
+dark
+ness 
+tell 
+ honest 
+tri
+be
+tra
+'s\n
+eep
+con
+ous
+I pray you
+wo 
+s are 
+old
+,\nAs 
+happy 
+gu
+\nOf
+per
+ them
+I thank 
+you, 
+gentlemen
+This 
+natural
+ so
+lic
+Can
+not be 
+; 
+good
+if 
+,\nWh
+given
+ me 
+uc
+in a 
+ood, 
+yield 
+su
+gg
+ose 
+hor
+age 
+doth 
+ my 
+hair
+heart 
+knock
+Against 
+use 
+s:\n
+whose 
+mur
+der 
+is but 
+sing
+state 
  man
-tion 
-mi
-thing 
-ance 
+, that 
+\nIs 
+mother
+in s
+e; and 
+nothing 
+pt
+chance 
+will 
 may 
+stir
+come 
+ stran
+not to 
+ould\n
 with the 
-ome 
+id 
+e what 
+y,\n
+Tim
+run
+stay 
+leis
+ure
+Give me 
+brain
+ was 
+forgo
 ind 
-urn
-Let 
+reg
+where 
+day 
+turn
+lea
+read 
+Let us 
+toward 
+the king
 ink 
+upon
+anc
+; and, 
+ing w
+igh
 it, 
-let 
+let us 
+free 
+hear
+each 
+V
+ery 
+.\nT
+enough
 Come, 
+. A Ro
+om in the 
+Pa
+Flourish
+\nA
+ttendant
+s.]\n\n
+.\nIs 
+not\n
 comm
-sion 
-ret
+sion
+return
+.\nMy 
+lie
+are not 
+back
+spo
+ke\n
+one that 
+saw
+ who 
+lor
+your high
+ness
+ p
+ardon
+forth
 ance
-eav
+Be
+came 
+leav
+; he 
 been
+udi
 ,\nTo 
-.\nTh
+throw
+ away 
+dear
+'twere 
+car
+eless 
+ere's 
+t\nTo 
 find 
+mind
+const
+face
+gentleman 
+om 
+bu
+sol
+ute 
+\n\n[Enter 
+s, and 
+ worth
 of my 
-tu
-de 
-ev
-heav
-. Th
-ou 
+rat
+even 
+\nWas 
+heavy 
+ me
+ thou art 
+swif
+comp
+ense 
+low
 take 
+thou 
+hadst 
+'d;\n
+port
+ thank
+ay
 \nM
+have been
+only 
+left 
+say
+,\nM
 ore 
+ more 
+ all 
+service 
+and the 
 ty 
+ do
+itself
+Your
+ high
+ par
+Is 
+ceive 
+our d
+ies
+e to 
 your
+chil
+dr
+serv
+ant
+ do 
+but 
+oul
+ever
+af
 love 
 hon
-fu
+.\nW
+hither
+pl
+full of 
+,\nThat 
+ must 
+known
+to have 
+done 
+let me 
+inf
 old 
-to my 
-own
-jo
-sel
- we 
- mu
+hold 
+heart
+There 
+if I 
+har
+eous 
+joy
+ful
+ness, 
+hide 
+selv
+rop
+es,\nAnd 
+ whose 
+pla
+ces 
+near
+est, 
+e will 
+lish
+ate 
+des
+; wh
+her
+Prince 
+ust
 ac
-t is 
-my l
-a s
+compan
+ied 
+ly,\n
+sign
+nobl
+ess, 
+like 
+star
+shall
+vers
+From
+ver
+further 
+to you
+, which 
+is not 
+for you
+I'll be 
+myself
+ app
+roach
+;\nS
+hum
+bly 
+take my 
+e.\n\nD
+a st
+ep
+ which 
+fall 
 down
+, or 
+else 
+,\nFor 
+in my 
+es. 
 fir
-lack
+Let 
+light 
+see 
+black
+deep
+ desir
+e w
 ink
- so 
-anqu
-eun
-let
-which
-‘
- thou
-.
-atch
-ong
-es, 
-cha
-ton
-ME
-plea
-s the 
-Un
-tal
-ty
-age 
-pur
-se, 
-keep
-een
-ver 
-ni
-love
-ce, 
-hall 
-will
-ter 
-gent
-let, 
-lov
-sion
-fri
-time 
-Go
-ouse
-te 
-cour
- hi
-were 
-qui
- these 
+ at the 
 hand
-I a
+let 
+eye 
+when 
+done, 
+.\n\n[Exit.]\n\n
+he is 
+full
+ so 
+vali
+ation
+It is 
+a b
+et 
+to me
+after
+,\nWhose 
+care 
+gone 
+befor
+wel
+eun
+t.]\n\n
+\n\nSCENE 
+om in 
+letter
+u
+cc
+have\n
+learn
+by the 
+ect
+they have 
+ than
+When 
+burn
+further
+made 
+selves 
+ir, 
+ they 
+iles 
+I s
+ood 
+onder 
+ives 
+\nthe 
+, who 
+ile
+;
+tit
+eir
+sal
+me, and 
+fer
+red 
+the\n
+time, 
+' 
+I th
+ought 
+deliver
+ thee, 
+ner 
+of\n
+; that 
+lose 
+jo
+being 
+ignor
+promis
+it to 
+t, and 
+farewell
+."
+be\n
+thou art 
+I fear
+full 
+of h
+um
+nes
+s\nTo 
+catch
+ouldst 
+t 
+amb
+; but 
+out\n
+. What 
+thou w
+high
+o
+play 
+false
+wrong
+win
+Thus 
+ thou 
+rather
+ dost 
+\nThan
+should be 
+one
+ie 
+I may 
+spir
+its 
+ thine 
+chast
+ise 
+tongu
+All
+imp
+gold
+,\nWhich 
+ysic
+doth
+What is 
+tid
+s?\n\n
+TEN
+ANT
+ton
+'r
+master
+ with him
+?
+ere
+'t 
+ould 
+ pre
+please 
+true
+coming
+One 
+fellow
+eed 
+of him
+almost 
+dead 
+ brea
+scar
+ce
+tend
+ings 
+news
+ himself
+ho
+cro
+ak
+s the 
+fat
+ce of 
+Under
+s\nThat 
+ort
+ thought
+here
+fill
+ to the 
+cruel
+ty
+ make 
+blood
+up the 
+acc
+ious 
+vis
+pur
+pos
+keep
+eace 
+between
+eff
+Come 
+to my 
+breast
+your m
+Where
+ver 
+your s
+sub
+ wa
+een 
+knif
+ heaven
+ank
+cr
+old, 
+hold
+.]\n\nG
+reat 
+rea
+s have 
+tran
+feel
+inst
+love,\n
+goes 
+hence
+morrow
+es.\n\n
+.\nO, 
+never
+hall
+ee
+ce, 
+ where 
+matter
+ile 
+Look 
+time
+; b
+in your 
+inno
+flower
+,\nBut 
+'t
+that's 
+ust 
+you shall 
+put
+\nThis 
+business 
+patch
+sovereign
+dom
+e will
+clear
+ter 
+ever 
+.\n\n[Exeunt.]\n\n\n\nSCENE 
+sam
+Before 
+\n\n[
+boy
+Serv
+.]\n\n[Enter 
+Attendants.]\n\n
+ca
+ a p
+: the 
+sweet
+ends 
+Un
+gentle 
+sen
+le-
+unt
+does 
+app
+lov'd 
+ry, 
+that the 
+heaven
+breath
+j
+ty, 
+fri
+z
+but
+Nor 
+co
+bir
+ mad
+bed 
+cre
+observ
+ate
+ee, 
+ honour
+host
+!--\n
+follow
+sometim
+trou
+ still
+lov
+you\n
+for your 
+our s
+erv
+ice
+tw
+ice 
+then
+poor 
+gainst 
+those 
+honour
+ad 
+where
+ ma
+jest
+ouse
+late 
+dign
+'d up
+,\nWe 
+cour
+s'd 
+heel
+pose
+: but 
+rid
+love, 
+arp
+spur
+home 
+before 
+. F
+ serv
+\nHave 
+selves
+ plea
+sure
+till 
+your hand
+ct 
+mine 
+contin
+ue 
+toward
+s him
+.\nBy 
+ve, 
+A 
+ob
+tor
+pas
+, a 
+es and 
+enter 
+it were 
+then 
+It 
+were 
+quick
+If
+ass
+\nC
+mel
+,\nWith
+eas
+be the 
+--
+here, 
+ban
+ of 
+ump
+lif
+ these 
+still 
+teach
+\nB
+loo
+gue 
+even
+just
+Comm
+own 
+He's 
+in d
+Fir
+I am
+and his 
+ject
+rong
+ against 
+deed
+: th
+,\nWho 
+murder
 ut 
+door
+Bes
+ides, 
+Hath
+orn
+eek
+ been
+\nSo 
+ear 
 off
-tear
-as
+ice, 
+virtu
+Will 
+plea
+angel
+trump
+ed, 
+am
+pit
+nak
+born
+ ba
+ing the 
+bla
+cher
+in, 
+hall 
+tears 
+drown
+pri
+sid
+, but 
+ly\n
+ting
+ am
+fall
+! what 
+.\nHe 
+has 
+chamber
+ask
+now 
+in this 
+bus
+'d me 
+opinion
  all
+people
+wor
  their 
+los
+cast 
+as
+ide 
+as the 
+unk
+yourself
+ince
+?\nAnd 
 wa
+now, 
+gre
 pa
+free
+time\n
+uch 
+ ac
+count 
+e? 
+eem
+'st 
+a c
+oward 
+ting 
+I d
+I w
+ould
+i' the 
+Pr
+'y
+peace
+a man
+dar
 bea
-whi
+'t, 
+enter
+pris
+you were 
+;\nAnd, 
+more than
+you w
+ere, 
+Be 
+so much
+time 
+ pla
+Did 
+you would 
+both
+fit
+uck
+tender 
+while 
+it was 
+sm
+pluck
+'d my 
+from his 
+bon
+s\nAnd 
+da
+'d the 
+sworn
+this
+.\nIf
+.\nWe 
+sc
+rew
+oura
+ing-
+we'll 
+hard 
+ne
+ite 
+him, 
+lain
+ith
+sail
+conv
+t of 
+\nA 
+ on
+ when 
+ sleep
+ren
+lie 
+in a
+ death
+you and 
+perform
+guard
 put 
+\nHis 
+ong
+offic
 ers
-gri
-.\nA
+guil
+ring 
+ men
+met
+tle 
+ but 
+,\nWhen
+ we have 
+ blood 
+sleep
+two
+ger
+s,\nThat 
+grief
+cla
+roar
+Up
+I am s
+d, and 
+to this 
+fea
+mock
+Fal
+se 
+face 
 must 
+hid
+false 
+.\n\n[Exeunt.]\n\n
+. C
+ceed
+ance 
+with a 
+night, 
+?\n\nF
 CE.\n
-clo
+heard 
+clock
 she 
+e.\n\nF
+tak
+e'
+lat
 sir
+sword
+There's 
+husband
+;\nTh
+eir 
+sum
+mon
+lead 
+I would not 
+iful
+ower
+R
+cur
+sed 
+thoughts 
+.\nA 
+rest
+a-
+bed
+sure 
+forth 
+lar
+to your 
+ond 
+your w
+,\nBy 
+kind 
+\nIn
+content
+prepar
+Which 
+dream
+last 
+some 
+I think 
+et, 
+when
+entreat 
+e would 
+ines
+grant 
+At 
+cons
+one\n
+ug
+ment 
+\nMy 
+bo
+gi
+I shall 
+coun
+.\nGood 
+pose 
+while
+[Exeunt 
+.\nGo 
+mistres
+She 
+stri
+Get 
+Servant
+I see 
+ thee
+not, 
+still
+ion, 
+art thou
+creat
+Pro
+pres
+yet, 
+pal
+able
+draw
+ mar
+I was 
+such 
+eyes 
+fool
+ens
+worth
+ all the 
+on thy 
+de 
+ blood
+not so 
+ thing
+Now 
+half
+worl
+dea
+wick
+tain
+ wit
+ft 
+ec
+e's 
+offer
+s; and 
+er'd 
+'d by 
+, the 
+watch
+thus 
+steal
+Tar
+gh
+ost
+Thou
+firm
+,\nH
+not my 
+ way 
+walk
+take the 
+ su
+cold 
+giv
+done
+; the 
+kn
+heaven 
+ made 
+ench
+them 
+ark
+gives 
+He is 
+about 
+open
+feit
+with s
+g'd 
+nature 
+.\n[
+Within
+.] 
+there
+hat, 
+lack
+ af
+'d,\nAnd 
+emp
+not the 
+found
+laid 
+ready
+could not 
+'em
+Had 
+father
+I had 
+!\n\n[
+Re-enter 
+.\nI have 
+st thou 
+I hear
+ream
+ and the 
+ets 
+cry
+ speak
+.\nAs 
+cond 
+a s
+foolish
+ though
+laugh
+ pra
+in to 
+lod
+bless 
+hang
+s.\n
+say, 
+.\nBut 
+erefore 
+need 
+ bl
+thro
+ese 
+s;
+will
+mad
+voice 
+no mor
+e!\n
+ does 
+vell
+th of 
+life, 
+course
+Ch
+ief
+ourish
+feast
+ mean
+house
+therefore 
+Why, 
+streng
+th to 
+think
+sick
+of th
+s.--
+Go 
+wash
+Why 
+you b
+carry 
+s with
+again 
+purpose
+pi
+child
+If he 
+.\n\n[Ex
+it. 
+nock
+noise 
+Will
+bloo
+Cle
+from my 
+; this 
+ine,\n
+Ma
+.\n\n[Re-enter 
+of your 
+ham
+e\nTo 
+wear
+ heart 
+[
+.]
+ I
+ry
+retir
+little 
+wat
+ears 
+of this 
+is it 
+Hath 
+lest 
+occasion
+call 
+show 
+be not 
+poor
+.\nTo 
+eed, 
+best 
+ myself
+\nW
 ake 
 I would 
-ci
-R
-there
- mo
-,\nO
-drea
-some 
-would 
-au
-.\n[Exeun
-dy
-not, 
-e.
-worl
-tes
-eal
-ep
-its 
-could 
-father
- hear
-cen
-gh 
-ese 
-vo
-Why, 
-ren
-dead
-.\nP
+[Exeunt.]\n\n
+[Enter
+.]\n\nP
 OR
-long
-Wha
-Tis 
-I do 
- M
-mean
-play
-Queen
-oni
-lord
-my lord, 
-&
-.]\nS
-Re
-he
-there 
- MU
-ros
+ER.\n
+ a man
+ were 
+gat
+he\n
+ed\n
+exp
+e; 
+ about 
+ here 
+'ll
+eat 
+ith, 
+here's 
+equ
+cat
+could 
+les 
+either
+scal
+trea
+son 
+God's 
+ke, 
+hither, 
+eal
+French
+you may 
+ast 
+qui
+place 
+thought 
+in\n
+of all 
+prof
+ession
+s, that 
+ing b
+on, 
+I pray you, 
+remember
+pen
+friend, 
+ent to 
+you do 
+, sir, 
+e were 
+till
+cock
+and\n
+drink
+is a 
+vo
+ree 
+.\n\nM
+things 
+pe
+ci
+ally 
+Marry, 
+pain
+Le
+kes
+desir
+it\n
+away 
+much
+rink
+said 
+to\n
+ with 
+makes 
+mar
+ten
+ makes 
+ stand 
+stand 
+believe 
+.\n\nP
+o'
+requ
+for his 
+I think
+strong
+ for
+leg
+t to 
+st\n
+?--\n
+'d him
+comes
+morrow, 
+!\n\nM
+command 
+ely 
+on him
+hour
+bring 
+you to 
+I know
+bold 
+Go
+to-day
+: he 
+ap
+been 
+s were 
+,\nL
+Of
+ire 
+ev
+wo
+Cla
+mour
+e-
+long 
+ some 
+sha
+'T
+young 
+remembran
+fellow 
+.\nO
+ongu
+ hear
+hat's 
+the matter
+ion 
+pie
+Most 
+e\nThe 
+Lord
+ole 
+life 
+ild
+majest
+dest
+ight\n
+new 
+org
+do not 
+.\n\n[Exeunt 
+ke
+counter
+ dea
+age
+rit
+counten
+[A
+ a h
+lad
+'Tis 
+I can
+ a w
+oman
+fell
+O 
+s!\n
+To
 any 
-my lord
-soul
-aught
-for the 
-Qu
-E.\n
-J
-,—
+Du
+pr'y
+ hour
+les
+; for
+nothing
+in m
+All 
+ys
+dead
+;\nThe 
+, and the 
+va
+bra
+.\nYou 
+tain 
+stop
+royal 
+father's 
+whom
+of his 
+, as 
+ their
+stra
+Was 
+ed with
+I do 
+I did 
+kill
+maz
+emper
+Lo
+ a m
+ of my 
+viol
+love\n
+Here 
+lay 
+sil
+look'd 
+colour
+manner
+eech
+'d with 
+fra
+in that 
+rag
+ence, 
+lady
+.\nWhy 
+claim
+arg
+?\n\nD
+ken
+Let's 
+away
+tear
+foot 
+tion
+carri
+suff
+ex
+ure, 
+know 
+div
+ret
+brief
+sor
+row 
+y. 
+rel
+Shall 
+keep 
+saf
+dy
+erefor
+horse
+war
+rant 
+, when
+ft
+out the 
+an old 
+D 
+MAN
+I can 
+ well
+night\n
+led 
+Ah, 
+ se
+s, as 
+act
+ by the 
+clo
+strang
+Is
+ance, 
+omb
+,\nWhen 
+kiss 
+.\n'Tis 
+Even 
+,\nA 
+fal
+in her 
+a m
+l 
+ most 
+certain
+Bea
+urn
+nat
+broke 
+ sta
+ung
+obedi
+would 
+War
+eyes,\n
+comes the 
+.\nWhy, 
+hath s
+Alas, 
+.\nThey 
+led
+; which
+usp
+ilt 
+mean
+Then 
+lik
+ready 
+Where is 
+body
+.\nC
+ed to 
+stor
+cess
+.\nNo, 
+cous
+Well, 
+I will
+.\nWell, 
+ee 
+well 
+dieu
+rob
+sit 
+Farewell
+with you
+of b
+lace.\n\n[Enter 
+Thou 
+, C
+is, 
+in thy 
+t and 
+ many 
+ there 
+truth 
+ sp
+ush
+sound
+Queen
 La
-Hor
-daught
-hat 
-King. 
-H.\n
+es, and 
+ in 
+thing 
+lem
+, sir
+dut
+ti
+Ay, 
+my good lord
+vi
+ill 
+grave 
+to-morrow
+, my lord, 
+ixt 
+horse 
+better
+,\nFor
+il 
+My lord, 
+hear 
+best
+England 
+of that 
+ there
+shall have 
+cause 
+ stat
+. H
+ish 
+your h
+foot
+ back
+.--\n\n
+[Exit 
+to make 
+swee
+we will 
+per 
+then, 
+&
+.]\n\nS
+rah, 
+ord 
+my lord, 
+thus
+s in 
+valour
+ere is 
+none 
+Whose 
+,\nMy 
+gen
+ius 
+Anton
+Caesar
+first 
+father 
+to a 
+on my 
+fru
+tr
+gri
+lin
+issu
+have I 
+gracious 
+s in the 
+ves
+sel
+eter
+jewel
+enemy 
+s, the 
+ather
+ate, 
+list
+utter
+ant, 
+there 
+spoke 
+MURDERER.\n
+consid
+speech
+he, 
+past
+, which
+under 
+; which 
+you th
+in h
+rought 
+ay, 
 ati
-Ty
-.]
-*
-RO
-UT
-ROME
-JULI
-ET
-DY
-Capulet
-Fri
-cell
-Juliet
-Juli
-Mon
-ERCUT
-Romeo
-tagu
-ENVOL
-CAPUL
-LADY 
-URS
-Nur
-RIAR LAWREN
-RIAR 
-ENVOLIO.\n
-Tybal
-Z
-Capu
-CAPULET.\n
-LADY CAPULET.\n
-RI
-Rome
-ROMEO.\n
-.\nROMEO.\n
-] 
-URSE.\n
-.\nJULIET.\n
-Ju
-.\nMERCUTIO.\n
-ERCUTIO.\n
-JULIET.\n
-Romeo 
-RIAR LAWRENCE.\n
-]
- W
-CH.\n
-'
-	
-1
-2
-3
-Pol
-'s 
-4
-5
-Æ
-Hamlet 
-Horati
-Hamlet
-Laer
-uil
-Opheli
-R.H
-L.H
-"
-0
-8
-Ham
-0 
-7
-. (R
-.) 
-2 
-tis 
-4 
-'d 
-. (
-C.) 
-6
-9
-.1
-5 
-.)
+pray 
+for this 
+beggar
+s for
+, my 
+.\nAy, 
+mong
+Sh
+water
+dem
+dog
+fi
+\nD
+es the 
+ow, 
+gif
+te
+ him 
+icul
+writ
+.\nNow, 
+you have 
+ation 
+life,\n
+vile 
+uff
+inc
+world
+,\nSo 
+tu
+Bo
+enem
+OTH
+MURDER
+ER
+Tru
+my lord
+dist
+being
+life
+ I 
+power
+certain 
+loves 
+drop
+it is
+ ass
+e;\n
+, my lord
+ough 
+--\n\n
+ spir
+;\nA
+aint 
+ with the 
+must be 
+to-
+some
+ al
+with him
+work
+company
+mat
+Than 
+embra
+come to 
+resol
+ stra
+within
+soul
+to-night
+nother 
+court
+ERVANT
+madam
+\nFor
+few
+ word
+adam
+augh
+,\nWhere 
+ des
+got 
+How now, 
+anci
+U
+indeed 
+think 
+rem
+hould 
+e'll 
+herself
+ilst 
+main
+of her 
+let the 
+join
+suffer
+aff
+ bet
+eace, 
+sent 
+mind 
+grav
+reason 
+, for
+eign
+touch
+Gent
+sl
+eek 
+ged 
+right 
+I, 
+love
+so, 
+pra
+e the 
+e, that 
+Must 
+flatter
+s;\nAnd 
+ heart
+.\nYou
+is my 
+lean
+ them 
+ they are 
+the b
+ning 
+ling 
+with thy 
+s me 
+rook
+oop
+gent
+s do 
+at my 
+bad 
+with me
+Par
+ing to 
+?\n\nTH
+need
+; s
+ince 
+we have 
+Then
+Now
+gain
+ject 
+of our
+atch
+he
+Al
+Make 
+alk
+ly, 
+fly
+ may
+reven
+let's 
+ much 
+ de
+first
+LOR
+your majest
+ will
+y,\nAnd 
+ut, 
+in b
+they are 
+s'
+I'll s
+mid
+blood 
+URDER
+for him
+s; 
+he's 
+if thou
+ou 
+,\nF
+.\nThen 
+fit 
+ per
+ble, 
+general
+ as the 
+bb
+bound 
+doub
+twenty 
+head
+ that's 
+for the 
+gone
+e'll
+lord
+,\nYou
+cheer
+vouch
+cer
+emon
+y;\n
+weet 
+Now, 
+dig
+heal
+ris
+of our 
+rather 
+chall
+ity 
+ mis
+canst 
+ sha
+lock
+s at 
+me.\n\n
+lord 
+often
+youth
+ray 
+eat
+y; 
+ again
+e well
+ext
+passion
+ard 
+y, and 
+ might 
+law
+s,--\n
+true 
+ woman
+uthor
+grand
+ool
+ how
+ say 
+speak 
+char
+ house
+ mon
+ument
+appear
+.\nWhat, 
+'d in 
+foll
+I saw
+ie, 
+Ere 
+hu
+weal
+since 
+tal
+s on
+s:
+get
+Do not 
+ity, 
+which is 
+ine, 
+joy 
+whole 
+friend 
+thir
+ORD
+! and 
+es are 
+a th
+cust
+ian
+ bear
+Take 
+shap
+never 
+trem
+ert 
+prot
+girl
+Hen
+dow
+ mo
+Pray 
+You have 
+mir
+order
+d,\n
+eci
+onder
+natura
+cheek
+ mine 
+worse 
+Qu
+once
+.\nIt 
+mov
+brought 
+cret
+od
+with m
+.\nHow
+ say
+I h
+fee
+(
+)
+More 
+; for 
+cause
+may be 
+.\nCome, 
+young
+anger
+.\n\nH
+E.\n
+I not 
+dam
+s as 
+you ar
+y and 
+How
+close 
+of all
+ show
+glor
+se, 
+wra
+at the 
+morning
+e.\n
+corn
+moon
+ground
+that, 
+usion
+to his 
+scorn
+hop
+wis
+ce, and 
+Music
+.]\n\nH
+oud 
+I say
+he was 
+str
+,\nIn
+e, the 
+;\nFor 
+'tw
+e,\nTo 
+, he 
+\nWhat 
+; so 
+But, 
+rant
+grace
+LORD.\n
+ whom
+Edward 
+ such 
+fortune 
+respect
+holy 
+ward
+help
+ify 
+faith
+ war
+did
+Sir, 
+esseng
 'll 
-'d
-.)\n
-Ham. 
-3 
-.\nHam. 
-8 
-é
-6 
-7 
-9 
-à
-è
-Oph
-Pol. 
-á
-ó
-LA
-1 
-] i.e., 
-.\nI.
-,] 
-i.e., 
-I.
-ĕ
-ī
-ē
-ĭ
-1st 
-.\nII.
-œ
-.\nIII.
-.\nIII.1
-i.
-.\nIV.
-.\nIV
-Clo
+e\nThat 
+answer
+him to 
+Some 
+\nF
+Eng
+wif
+bless
+pray
+cal
+poison
+oa
+der
+Li
+a h
+of w
+vin
+hem
+Jew
+liver
+sla
+er's 
+ it 
+abo
+En
+you p
+spirit
+ome
+!\n\n[Enter 
+.\nHow 
+e'er 
+church
+found 
+ow 
+ head
+ pa
+ram
+outh
+Her 
+fla
+Hea
+,--\n\n
+knows 
+thought
+Hear
+.\n\nA
+ARI
+TI
+ON.\n
+Des
+e'er
+for thy 
+fear 
+word 
+command
+: h
+AP
+power 
+hand, 
+brow
+oud
+be, 
+sin
+\nShall 
+oot
+Sweet 
+lease 
+I will be 
+satis
+curse 
+Let me 
+[E
+ a\n
+ss 
+spirit 
+;--\n
+four
+many 
+Hor
+poin
+What
+ thus 
+welcome 
+you the 
+indeed, 
+ where
+by
+purpose 
+took
+Unless 
+ling
+ast
+no more 
+bring
+fly 
+pati
+ther 
+coz
+chool
+Ju
+ach
+of you
+long
+limb
+pretty 
+less
+comfor
+:\nI 
+y.\n\n
+Yes, 
+ wilt 
+.\nNay, 
+you'll 
+buy 
+that he 
+swear
+honest 
+s: 
+t the 
+men 
+for a 
+weep
+a good 
+I should 
+quickly 
+talk
+'st
+ESSENGER.\n
+e! 
+doubt 
+you will 
+; h
+us, 
+sav
+nigh
+erve 
+harm
+rememb
+to do 
+danger
+:  
+I hop
+ied
+Sta
+.\nLet 
+bosom
+fast 
+if it 
+able 
+believ
+time to 
+tyran
+honest
+loved 
+mb
+ease 
+god
+I am not 
+e, my 
+right
+raw
+cious 
+jeal
+your d
+I shall
+ think
+country
+che
+ell, 
+rich 
+offend
+I sp
+eak 
+country 
+eath
+, with
+goodly 
+thous
+ this
+swor
+; and the 
+s\nOf
+evil
+Lu
+var
+there's 
+aughter
+your ma
+lust
+reign
+you m
+ey 
+ing d
+dev
+ection
+cut 
+noble
+ mor
+just 
+,\nD
+roy
+sword 
+land 
+cou
+Nay, 
+sweet 
+ such a 
+govern
+No, 
+thou s
+ome 
+of thy 
+ stand
+queen
+knee
+These 
+ thyself
+ed the 
+cru
+\nBy 
+of these 
+train
+mod
+luck
+cred
+ween
+and my 
+ither, 
+uch
+.\n\n[Enter a 
+OC
+TOR
+retch
+lady 
+ heaven 
+oft
+y-
+neck
+oly 
+enedi
+God, 
+s!\n\n
+call'd 
+sigh
+groan
+sorrow
+atter
+peace 
+of your
+ how 
+ort 
+soldier
+ wom
+Christ
+I could 
+ the
+\nBut 
+it be 
+Keep
+it.\n\n
+tongue 
+poss
+erc
+ne'er 
+hat 
+ught 
+s it 
+medi
+for thee
+ soul
+ sword
+unt 
+heart, 
+with my 
+eng
+if he 
+ven 
+ower 
+nothing but 
+\n\nACT
+Ph
+ed with 
+GENTLE
+OM
+rite 
+seal
+tur
+effect
+you hear
+I will not 
+.\n\nG
+ENTLE
+either 
+This is 
+upon my 
+ she 
+action
+,\nand 
+in him
+h, 
+ the\n
+well, 
+pract
+Even
+give me 
+bles
+needs 
+ after
+Coun
+try 
+.
+English
+uncle 
+.\n\nCA
+ESS.\n
+brother
+?\n\nC
+hate 
+march
+truly 
+in our 
+s,\nTo 
+.\n\n[Exeun
+ing.]\n\n
+What's 
+never s
+ thous
+behold
+lou
+mouth
+pleasure
+news 
+SE
+fight 
+flesh
+talk 
+ent, 
+she is 
+er to 
+ze 
+ot
+s,--
+of it
+staff
+send 
+ease
+ull
+ hence
+I hope 
+ARD.\n
+cover
+OLDI
+but the 
+there is 
+serve 
+cen
+oward
+wall
+might 
+beat 
+tast
+reat
+ouse 
+fam
+ili
+pet
+stru
+tale
+,\nI 
+an to 
+I say, 
+next 
+ooth
+begin
+oc
+ing h
+tar
+sun
+wish
+world 
+die 
+uncle
+ead 
+remain
+are you w
+.  
+part 
+nter 
+fearful
+prove 
+slain
+eapon
+Ty
+If thou
+wretch
+,\nOr 
+ed. 
+rend
+people 
+III
+field
+Rom
+better 
+ men 
+\nThan 
+term
+st thou
+een
+yield
+pair
+Tell
+wom
+break 
+coward
+kis
+bod
+eld
+friends 
+riv
+this is 
+eap
+deb
+ he is 
+ then
+hol
+stand
+usur
+pear
+desire 
+shall not 
+e we 
+ honour 
+ook 
+else
+E 
+Y 
+IV
+ES
+ OF 
+IN
+AM
+ P
+ERS
+\n\nS
+IR 
+JOHN
+ F
+ALSTAFF
+HALLOW
+DER
+\nP
+AG
+E, 
+ILLIAM
+UG
+EV
+Wel
+IUS
+OST
+ of the 
+ARDOLPH
+, P
+ISTOL
+YM
+oll
+Falstaff
+IM
+lend
+\nR
+ius
+MI
+ST
+RESS
+ANN
+daughter
+QUICK
+age, 
+neighbour
+1
+'S
+J
+UST
+IC
+ar 
+ber
+Sir 
+John 
+Gloucester
+.'
+cousin 
+Master 
+itt
+lig
+I do
+undred 
+year
+hath d
+white 
+in their 
+HALLOW.\n
+EVANS.\n
+ bea
+that is 
+unto 
+glad 
+between 
+I were 
+s with 
+ne 
+daughter 
+vir
+Mistress 
+gentle
+possi
+tell you
+that\n
+Sir John
+I beseech 
+pea
+!\n\nP
+AGE.\n
+.\n\n[Enter P
+to see 
+ worship
+for my 
+ better
+istress 
+.\nSir, 
+yea
+jud
+fault
+; 'tis 
+ dog
+ here
+?\n\nP
+as a 
+ wrong
+e.\n\nP
+confess 
+Master
+he hath
+.]\n\nF
+.\n\nFALSTAFF
+answer 
+counsel
+s! 
+your\n
+Bardolph
+.\n\nPISTOL
+Me
+.\n\nN
+That's 
+humour
 eli
+fin
+book
+this, 
+I might 
+ix
+vel
+Yea
+true, 
+'twas 
+marry 
+if you 
+uth
+John
+five 
+; I'll 
+for\n
+trick
+I be 
+ken 
+kna
+you h
+!\n\nF
+by my 
+tro
+ot 
+dinner
+LE.\n
+lend 
+fore 
+ption
+city 
+I pray 
+though 
+ aff
+erefore, 
+maid
+ladi
+you must 
+quest
+quain
+marri
+ed and 
+,'
+fair 
+ANNE.\n
+din
+you, sir
+man, 
+mother 
+ without 
+will not 
+faith, 
+. I 
+ster 
+i'
+town
+I love 
+You are 
+id, 
+bear 
+ack
+twent
+I warrant 
+choo
+2
+nur
+you be 
+CENE
+3
+HOST
+says 
+chol
+.\n\nHOST
+Her
+es; 
+entertain
+ardolph
+Hector
+let him 
+[To 
+] 
+gar
+conce
+kept 
+foo
+in her
+.'\n\n
+of her
+her, 
+letter 
+etim
+I thank
+for that 
+course 
+a\n
+Gu
+a, 
+gold 
+Tro
+base 
+Here, 
+reput
+rogu
+gut
+ouch
+ when
+ star
+     
+\n       
+,\n     
+,\n       
+oft 
+4
+QUICKLY.\n
+case
+ius, 
+any
+Y.\n
+fault 
+given 
+body 
+. P
+lover
+righ
+O! 
+s!
+; I 
+. \n\n
+IUS.\n
+I do not 
+green
+fet
+[Aside
+fe
+--\n
+Jack
+ia
+  
+ man 
+err
+litt
+anchol
+down 
+neither
+edd
+easure 
+I\n
+vill
+Sir
+folk
+leave to 
+with her
+.\n\nF
+praise 
+suit
+ich
+oney 
+Out 
+[Exit.]\n\n
+RS. PAGE.\n
+beaut
+Love 
+   
+if the 
+,\n  
+      
+knight
+might
+                
+as\n
+RS. FORD.\n
+resp
+or s
+diff
+he would 
+iness 
+Gre
+hal
+fire 
+sure, 
+out of 
+unless 
+that my 
+husband 
+my good 
+sul
+ORD.\n
+ope 
+both 
+horn
+arewell
+iev
+Cor
+lieve 
+necess
+,' 
+such a 
+ended 
+Har
+Fran
+thou hast 
+[Aside to 
+RS. F
+RS. P
+told 
+let it 
+loa
+\nand 
+ary 
+ight, 
+go, 
+I know not 
+what
+Well
+ well 
+fif
+atis
+honour 
+am 
+oath
+, good 
+There is 
+little
+Lord, 
+nay, 
+more, 
+I war
+a thousand 
+her h
+usband 
+ele
+usb
+knew
+you know
+know the 
+along
+pun
+I am a 
+er than
+you will
+ies, 
+proceed
+ pur
+prom
+quali
+that I 
+mist
+excell
+allow
+chang
+sie
+thinks 
+dri
+vow
+nex
+you shall
+point
+my\n
+thou shalt 
+ield 
+past 
+as I 
+ave 
+?\n\nH
+ock
+rever
+cu
+ali
+Hect
+Gree
+are\n
+Mon
+Mo
+let him
+lords, 
+]\n
+.]\n
+gam
+by his 
+let
+ard, 
+French 
+lit
+cel
+rust 
+toge
+ all my 
+s? 
+ stri
+. \n
+exc
+day, 
+too much
+among
+liber
+io
+lady, 
+France 
+ond
+ thou hast 
+beauty 
+Ven
+excellent 
+circ
+Fortun
+Buck
+re 
+las, 
+what's 
+vantage 
+. If 
+dear 
+thousand 
+foul 
+ead
+sem
+seek
+fashion
+France
+dishon
+obe
+morrow 
+faul
+consci
+pardon
+fast
+ me to 
+May 
+rich
+favour
+father, 
+ wo
+tty 
+you with
+Sp
+bow
+}
+ously 
+5
+fetch
+ta'
+of a
+shor
+O!
+change 
+istres
+, what 
+circum
+sad
+sudden
+play
+because 
+?\n\nW
+.\n\nW
+ura
+child 
+Thou art 
+lex
+!'
+.\n  
+;\n  
+IRST S
+ECOND S
+.\n\nFIRST S
+ander
+inion
+ hold 
+fig
+no, 
+itor
+ublic
+duke 
+ doth
+griev
+irc
+Queen 
+ian 
+Duke 
+common
+6
+loss
+mut
+ away
+to thee
+RS
+ne'
+choose 
+lew
+HER
+gods 
+Jo
+hot 
+ me,\n
+rut
+s my 
+.\n\n[E
+rother
+rev
+ maid
+\nWith 
+expres
+corru
+        
+ONG
+sland
+whom 
+esh
+ced 
+[Exeun
+ERIC
+RINC
+YR
+ANTI
+prince 
+EL
+MON
+ID
+LEON
+gover
+YS
+ACH
+ERI
+UL
+DI
+Z
+A, 
+IS
+MAR
+ina
+IANA.\n
+OW
+ACT
+cit
+princ
+ERICLES.\n
+virtue 
+,\nOr
+.\n\nPERICLES.\n
+like to 
+;\nMy 
+AU
+ing s
+usic
+eyes, 
+US
+!  
+AC
+LES.\n
+courtes
+Doth 
+Because 
+,\nIf 
+pity 
+angu
+,\nP
+ANUS.\n
+Signior 
+ince, 
+frown
+ax
+prince
+.\n\nTH
+Lord 
+q
+A.\n
+e.\n\nC
+want
+.\n\nC
+ved 
+conqu
+we are 
+UM
+hap
+ beg
+chill
+quoth
+?  
+fully 
+by this 
+vail
+liev
+,\nThis 
+to thy 
+ES.\n
+triumph
+gle
+your honour
+plain
+fu
+.\n\nFIRST LORD.\n
+a fool
+]
+queen 
+IG
+HAL
+end, 
+music
+Since 
+he that 
+means 
+ sweet 
+cent
+Yea, 
+omp
+brid
+kneel
+urse
+pat
+condition
+{
+IL
+.]\n\nC
+PH
+GENTLEMAN
+lordship
+your lordship
+cun
+eness 
+!\n\nC
+     '
+\n     
+     S
+Egy
+Re-
+beseech 
+force 
+madam, 
+Madam
+Mor
+cene 
+Leon
+.\n\nLEON
+INE.\n
+INA.\n
+.\n\nMAR
+mber
+ept 
+IR
+Val
+ene
+ANDAR
+D.\n
+voice
+peop
+ with his 
+Ver
+blush
+deny 
+uty 
+0
+ain 
+Nurse
+ourable 
+bour
+mighty 
+lown
+eech 
+jur
+dish
+IAN
+.\n\nT
+vain
+Lad
+s?\n
+       
+ C
+Em
+bet
+ son
+y\nTo 
+OMED
+ONS
+RE
+ED
+Duke of 
+ANTIPHOLUS OF 
+EPHES
+    
+ANTIPHOLUS OF
+ SYRACUS
+ROMIO OF 
+ROMIO OF
+AR
+ANGEL
+INC
+EM
+IA
+LUC
+OUR
+TE
+\n\nSCENE
+DUKE
+.\n\n[Enter the 
+FF
+death, 
+.\n\nDUKE.\n
+pleas
+proud 
+ much
+fash
+UKE.\n
+die
+ANTIPHOLUS
+ mer
+ANTIPHOLUS OF SYRACUSE.\n
+io, 
+ROMIO OF SYRACUSE.\n
+ROMI
+EPHESUS.\n
+ADR
+ADRIANA.\n
+Luci
+.\n\nLUC
+ity,\n
+urg
+dst 
+io 
+answ
+wit 
+bast
+Na
+bal
+therefor
+stain
+ANTIPHOLUS OF EPHESUS.\n
+chur
+ANGELO.\n
+ator
+e,\n  
+\n  
+YRACUS
+bun
+igni
+.\n\nO
+duk
+brother 
+]\n\n
+tender
+prison
+force
+OF
+shame 
+AB
+AD
+izen
+den 
+YMBEL
+LO
+OSTHUM
+OLY
+PHIL
+IACHIM
+Cap
+IRST
+banish
+Roman
+Cass
+QUEEN
+IMOGEN
+OSTHUMUS.\n
+High
+Rome 
+epher
+IO
+ANIO.\n
+Madam, 
+LAD
+Rome
+UT
+IACHIMO.\n
+IO.\n
+ to be 
+iam
+betw
+LA
+your Gra
+fres
+.\nMy lord, 
+arms 
+Hel
+notes 
+Majest
+ESSENG
+Juli
+camp
+God
+BEL
+boy, 
+rist
+gy
+BRO
+Off
+Suff
+?\n\nG
+e?\n
+_gut
+]\nurl = h
+ttp://www.gutenberg.org/dirs/etext98/2ws
+10.txt\nnotes = Sourced from Project Gutenberg (<h
+10.txt>)
+format = txt\ncreator = Shakespeare, William\ntitle = 
+Gutenberg
+]\n\n[
+_
+7
+Athen
+onic
+9
+Tit
+ttp://www.gutenberg.org/dirs/etext00/0ws
+folio
+Gutenberg 
+Henry 
+Richard 
+esar
+Ham
+ttp://www.gutenberg.org/
+/
+txt\nnotes = Sourced from Project Gutenberg (<h
+txt>)
+Tal
+8
+10
+ttp://www.gutenberg.org/dirs/etext
+format = txt\ncreator = Shakespeare, William\ntitle 
+= S
+Troil
+=
+txt\n
+MOR
+ANTON
+ASS
+Bass
+ARIN
+RATI
+HYLOC
+LAUN
+CEL
+OT
+OB
+AS
+STEPH
+ORTI
+ANTONIO.\n
+Lor
+ASSANIO.\n
+RATIANO.\n
+ignior 
+.\n\nANTONIO.\n
+Brutus
+ORTIA.\n
+.\n\nPORTIA.\n
+K.\n
+love's 
+if they 
+;\n     
+ERV
+eth
+enemies
+loving 
+UKE
+ICE.\n
+Troy
+ANO.\n
+Som
+neigh
+IST
+ROIL
+AND
+RESSID
+ECTOR
+ELEN
+GAR
+ENE
+CAL
+AGAMEMN
+ILL
+JAX
+ULYSS
+EST
+ROC
+EX
+ANDER
+RA
+OG
+TROILUS.\n
+ANDARUS.\n
+reng
+.\n\nPANDARUS.\n
+ROILUS.\n
+Da
+AS.\n
+RESSIDA.\n
+.\n\nCRESSIDA.\n
+riar
+Achill
+ULYSSES.\n
+cell
+AGAM
+ERSITES.\n
+ACHILLES.\n
+et's 
+Rich
+.\n\nCASS
+Hast
+A\n
+rother 
+Margar
+BER
+OWN
+AV
+OYET
+MARC
+ARMAD
+ATH
+ERN
+OSTARD
+RINCESS
+ROSALIN
+KATH
+JAQU
+KING
+.\n\nBER
+.\n\nKING
+E. \n
+.\n\nBEROWNE. \n
+OSTARD. \n
+OWNE. \n
+ARMADO
+ARMADO. \n
+OTH. \n
+@
+OYET. \n
+.\n\nPRINCESS. \n
+RINCESS. \n
+ROSALINE. \n
+ROSAL
+Rosal
+IA.\n
+envo
+:\n  
+Reg
+gir
+                        
+TR
+Fl
+Pomp
+vie
+ws
+PE
+UR
+ORTH
+ING
+EBASTIAN
+ALENT
+IR TOB
+IR ANDRE
+ALVOL
+ABIAN
+LOWN
+OLIV
+IOL
+ALENTINE.\n
+IOLA.\n
+.\n\nV
+olph
+IR TOBY.\n
+.\n\nSIR TOBY.\n
+W.\n
+?\n\nV
+.\n\nCLOWN
+?\n\nCLOWN
+OLIVIA.\n
+lio
+ALVOLIO.\n
+uten
+unc
+Bol
+ardin
+TIT
+ATURNIN
+ARB
+DEM
+ETRIUS
+LAV
+CUS.\n
+TITUS.\n
+ETR
+IB
+sud
+Laer
+.\n\nCH
+.  \n\n
+it.]\n\n
+Brutus 
+Valent
+KING 
+RICH
+ECON
+UNT
+Lanca
+Yor
+HEN
+OLING
+BROK
+York
+ OF
+ALIS
+BUR
+EEN
+ORTHUMBER
+LAND
+OP
+BOT
+QUEEN 
+UCH
+LOUC
+YORK
+London
+KING RICHARD.\n
+Lancaster
+.\n\nKING RICHARD.\n
+OLINGBROKE.\n
+Boling
+Lord of 
+AST
+UCHESS.\n
+Edward
+Edm
+HY
+arl
+YORK.\n
+Ed
+ORTHUMBERLAND.\n
+ishop
+ingham
+cester
+sbur
+BURY.\n
+yi
+Lond
+West
+REY.\n
+Kent
+ROSP
+IP
+ARIEL
+STER.\n
+[Ex
+.\n\nPROSPERO.\n
+ROSPERO.\n
+AND.\n
+Clar
+IS.\n
+ON PED
+LAU
+ENED
+ICK
+CI
+BE
+ATR
+MARGARET
+ATO.\n
+.\n\nLEONATO.\n
+Claudi
+ERO.\n
+ATRICE.\n
+ON PEDRO.\n
+.\n\nDON PEDRO.\n
+ENEDICK.\n
+LAUDIO.\n
+.\n\nCLAUDIO.\n
+\n\nScene 
+ADE.\n
+GARET
+RY.\n
+Antony
+IAG
+ESDEM
+Iag
+Cassio
+IAGO.\n
+.\n\nIAGO.\n
+OTHELLO.\n
+.\n\nOTHELLO.\n
+Desdemon
+ENATOR
+ESDEMONA.\n
+.\n\nDESDEMONA.\n
+EMILIA.\n
+demon
+CA.\n
+LI
+ORLAND
+OUCHST
+ILV
+ORLANDO.\n
+ELIA.\n
+.\n\nROSALIND.\n
+.\n\nCELIA.\n
+ROSALIND.\n
+OUCHSTONE.\n
+anca
+ICK.\n
+ilvi
+Lear
+ORIOL
+LAR
+ENEN
+RUT
+CITIZEN
+VOL
+UMN
+Marci
+ENENIUS.\n
+.\n\nMENENIUS.\n
+OMINIUS.\n
+ICINIUS.\n
+RUTUS.\n
+.\n\nSICINIUS.\n
+.\n\nBRUTUS.\n
+ILIA.\n
+ORIOLANUS.\n
+.\n\nCORIOLANUS.\n
+IX
+TIZEN
+Brut
+D S
+umph
+ATOR
+Gloster
+ARDIN
+EDW
+OMERSET
+UFFOLK.\n
+UCKINGHAM
+LIFF
+ARWICK
+HUM
+STAFF
+STAN
+Suffolk
+ELL
+ET
+ICH
+Henry
+JO
+UFFOL
+olk
+.\n\nGLOSTER.\n
+GLOSTER.\n
+Buckingham
+Warwick
+LOSTER.\n
+Somer
+ARWICK.\n
+.\n\nBUCKINGHAM
+ardinal
+Glo
+ETER.\n
+Dauph
+Cardinal
+.\n\nKING HENRY.\n
+YOR
+ENTI
+KING HENRY.\n
+LAND.\n
+uph
+Cliffor
+liffor
+EDWARD.\n
+RICHARD.\n
+Earl
+RINCE.\n
+.\n\nFAL
+.\n\nPRINCE.\n
+OIN
+.\n\nHOT
+HAM
+XX
+﻿
+00
+w.
+98
+.\n\nKING 
+ORFOL
+ASTING
+BERT
+ELIZABETH
+LARENCE.\n
+ASTINGS.\n
+QUEEN ELIZABETH
+QUEEN MARGARET
+Talbo
+JUL
+CAESAR
+LAUD
+URN
+.\n\nCAESAR
+ANTONY.\n
+ESAR
+.\n\nANTONY.\n
+.\n\nCASSIUS.\n
+RO.\n
+INIUS.\n
+.\n\n'
+APTIST
+ETRUCH
+REM
+ORTENS
+RUM
+KATHER
+UC
+LY.\n
+ENTIO.\n
+TRANIO.\n
+APTI
+STA
+ORTENSIO.\n
+APTISTA.\n
+KATHERINA.\n
+BI
+ELLO.\n
+ETRUCHIO.\n
+.\n\nPETRUCHIO.\n
+EPH
+BROKE.\n
+Monta
+ONA.\n
+.\n\nHam
+berg
+casion
+ng
+Herm
+EUS
+IRST 
+AUL
+ASTARD.\n
+BAST
+ENG
+HENRY.\n
+*
+ESCAL
+ROVOST
+ESCALUS.\n
+Juliet
+ISABELLA.\n
+.\n\nISABELLA.\n
+ABELL
+LEOPATR
+ENOBARB
+EU
+ARMIAN
+LEOPATRA.\n
+.\n\nCLEOPATRA.\n
+ENOBARBUS.\n
+url 
+ABELLA.\n
+Capu
+Capulet
+ercut
+Romeo
+envolio
+Tybal
+.\n\nRomeo
+ercutio
+ENCE.\n
+ced from 
+ESTER.\n
+.\n\nLear
+.\n\nGlou
+Glou
+Edg
+OUNT
+OUNTESS.\n
+JA
+LUELLEN
+ANS.\n
+AMILL
+OLIX
+IZ
+UTOLY
+AMILLO.\n
+ENES.\n
+.\n\nLEONTES.\n
+ONE.\n
+TES.\n
+UTOLYCUS.\n
+TA.\n
+ewel
+OLSE
+OLSEY.\n
+TIMON
+Timon
+EMANT
+ewell
+.\n\nTIMON
+EMANTUS.\n
+ROTE
+.\n\nPROTEUS.\n
+ROTEUS.\n
+.\n\nVALENTINE.\n
+PEED.\n
+PEE
+JULIA.\n
+LAUNCE.\n
+TRAM
+LAFEU
+AROL
+.\n\nBERTRAM
+ELENA.\n
+AROLLES.\n
+.\n\nPAROLLES.\n
