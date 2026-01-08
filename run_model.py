@@ -70,15 +70,7 @@ def embed(rule_list, case):
         i+=1
     return case
 
-#PARAM DECLARATIONS
-k_DModel = params.k_DModel #32
-k_ContextLength = params.k_ContextLength#8
-k_VocabSize = params.k_VocabSize #plus four for start, end, pad, and space      last one is no idea
-k_Attheads = params.k_Attheads
-k_AttBlocks = params.k_AttBlocks
-#these should all be the same
-k_DQuery = params.k_DQuery
-k_DKey = k_DQuery
+
 
 
 sWe = weights["sWe"]
@@ -95,8 +87,14 @@ sLNBias = weights["sLNBias"]
 sLW = weights["sLW"]
 sLB = weights["sLB"]
 
-
-
+k_VocabSize=len(sWe)
+k_DModel=len(sWe[0])
+k_AttBlocks=len(sWk)
+k_Attheads=len(sWk[0])
+k_ContextLength=len(sWpos)
+k_Dquery=len(sWk[0][0][0])
+k_DKey = k_Dquery
+print(k_ContextLength)
 
 def fowardprop(input_llm, svocabDict):
     #------------------
