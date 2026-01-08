@@ -9,7 +9,7 @@ num_times = 5000
 
 k_ShiftFactor = 2
 k_BatchSize = 16
-k_Alpha = 0.0002
+k_Alpha = 0.001
 k_Beta1 = 0.9
 k_Beta2 = 0.999
 k_Epsilon = 0.00000001

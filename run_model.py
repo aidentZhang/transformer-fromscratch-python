@@ -3,6 +3,39 @@ import params
 
 weights = mx.load("./Weights/weights.npz")
 
+
+
+sWe = weights["sWe"]
+sWpos = weights["sWpos"]
+sWq = weights["sWq"]
+sWk = weights["sWk"]
+sWv = weights["sWv"]
+sMLPW1 = weights["sMLPW1"]
+sMLPW2 = weights["sMLPW2"]
+sMLPb1 = weights["sMLPb1"]
+sMLPb2 = weights["sMLPb2"]
+sLNGain = weights["sLNGain"]
+sLNBias = weights["sLNBias"]
+sLW = weights["sLW"]
+sLB = weights["sLB"]
+
+k_VocabSize=len(sWe)
+k_DModel=len(sWe[0])
+k_AttBlocks=len(sWk)
+k_Attheads=len(sWk[0])
+k_ContextLength=len(sWpos)
+k_Dquery=len(sWk[0][0][0])
+k_DKey = k_Dquery
+
+print(k_VocabSize)
+print(k_DModel)
+print(k_ContextLength)
+print(k_DKey)
+print(k_AttBlocks)
+print(k_Attheads)
+print(k_Dquery)
+
+
 def layerNorm(E, attLayer, prePostMLP):
     temp = mx.nan_to_num((E-mx.mean(E, axis = -1, keepdims = True))/mx.sqrt((mx.nan_to_num(mx.var(E, axis = -1, keepdims = True), nan = 0.)+0.00001)))
     return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
@@ -73,28 +106,7 @@ def embed(rule_list, case):
 
 
 
-sWe = weights["sWe"]
-sWpos = weights["sWops"]
-sWq = weights["sWk"]
-sWk = weights["sWq"]
-sWv = weights["sWv"]
-sMLPW1 = weights["sMLPW1"]
-sMLPW2 = weights["sMLPW2"]
-sMLPb1 = weights["sMLPb1"]
-sMLPb2 = weights["sMLPb2"]
-sLNGain = weights["sLNGain"]
-sLNBias = weights["sLNBias"]
-sLW = weights["sLW"]
-sLB = weights["sLB"]
 
-k_VocabSize=len(sWe)
-k_DModel=len(sWe[0])
-k_AttBlocks=len(sWk)
-k_Attheads=len(sWk[0])
-k_ContextLength=len(sWpos)
-k_Dquery=len(sWk[0][0][0])
-k_DKey = k_Dquery
-print(k_ContextLength)
 
 def fowardprop(input_llm, svocabDict):
     #------------------
