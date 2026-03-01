@@ -4,79 +4,188 @@ from pathlib import Path
 import params
 
 
-
-# import time
-
-# start = time.time()
-# print("hello")
-# end = time.time()
-# print(end - start)
+import sys
+import time
 
 
 
 
-tok_list = []
-vocab_list = []
-tok_set = set()
-directory_path = Path('./Training_Data/raw') 
-files_list = [p for p in directory_path.iterdir() if p.is_file()]
-for file in files_list:
-    try:
-        if(str(file)[-6:-4]!='_f'):
-            print(file)
-            with open(file, 'r') as f:
-                tok_list_temp = f.read()
-                tok_list_temp = list(tok_list_temp)
-                tok_list+=tok_list_temp
-    except:
-        print("error opening a file")
 
-for character in tok_list:
-    if character not in tok_set:
-        tok_set.add(character)
-        vocab_list.append(character)
 
+chunk_list = []
+
+
+from datasets import load_dataset
+
+ds = load_dataset("wikimedia/wikipedia", "20231101.en")
+
+
+print(len(ds))
+
+print(ds['train'][0]['text'])
+
+
+# directory_path = Path('./Training_Data/raw') 
+# files_list = [p for p in directory_path.iterdir() if p.is_file()]
+
+with tqdm(total=len(ds['train'])) as pbar:
+    for file in ds['train']:
+        pbar.update(1)
+        chunk_list += ["<STARTTEXT>"] + file['text'].split(" ")+ ["<ENDTEXT>"]
+
+        print(f"File has size {sys.getsizeof(chunk_list)} bytes")
+        # if(sys.getsizeof(chunk_list)>15018942232):
+        if(sys.getsizeof(chunk_list)>8942232):
+            break
+
+
+chunk_dict = {}
+
+for chunk in chunk_list:
+    if chunk not in chunk_dict:
+        chunk_dict[chunk] = 1
+    else:
+        chunk_dict[chunk]+=1 
 
 num_times = params.num_times
 i = 0
+
+
+
+global_freq = {}
+local_freq = []
+locs = {}
+k=0
+while k < len(chunk_list):
+    chunk = chunk_list[k]
+    local_freq.append([])
+    if(len(chunk) != 1):
+        j=0
+        while j < len(chunk)-1:
+            local_freq[-1].append((chunk[j], chunk[j+1]))
+
+            if (chunk[j], chunk[j+1]) in global_freq:
+                locs[(chunk[j], chunk[j+1])].add(k)
+
+                global_freq[(chunk[j], chunk[j+1])]+=chunk_dict[chunk_list[k]]
+
+            else:
+                locs[(chunk[j], chunk[j+1])] = {k}
+                global_freq[(chunk[j], chunk[j+1])] = chunk_dict[chunk_list[k]]
+            j+=1
+    k+=1
+
+
 with tqdm(total=num_times) as pbar:
     with open('bpe_rules.txt', 'w') as f:
         while i < num_times:
             pbar.update(1)
-            freq_dict = {}
-            max_occ = (tok_list[0], tok_list[1])
-            freq_dict[max_occ] = 1
-            j = 1
-            while j < len(tok_list)-1:
-                if (tok_list[j], tok_list[j+1]) in freq_dict:
 
-                    freq_dict[(tok_list[j], tok_list[j+1])]+=1
-                    if(freq_dict[(tok_list[j], tok_list[j+1])]>freq_dict.get(max_occ)):
-                        max_occ = (tok_list[j], tok_list[j+1])
-                else:
-                    freq_dict[(tok_list[j], tok_list[j+1])] = 1
-                j+=1
+
+
+            k = 0
+            search_st = time.perf_counter()
+            try:
+                max_occ = max(global_freq, key=global_freq.get)
+            except:
+                print(str(i-1)+ " is num iterations, terminated due to no more merges being possible")
+                break
+
+            # print(global_freq)
+            # print(local_freq)
+            # print(locs)
+            # print("\n")
+            # print(max_occ)
+            search_et = time.perf_counter()
+            # print(f"initializing took {search_et-search_st:.4f} seconds.")
+
+
             f.write(f"{max_occ[0].replace('\n', '\\n')}\n{max_occ[1].replace('\n', '\\n')}\n")
-            j = 0
-            while(j < len(tok_list)-1):
-                if(max_occ == (tok_list[j], tok_list[j+1])):
-                    tok_list[j]+=tok_list[j+1]
-                    tok_list.pop(j+1)
-                    j-=1
-                j+=1
+            # print(max_occ)
+            # print(global_freq[max_occ])
+            global_freq.pop(max_occ)
+            update_st = time.perf_counter()
+            for index in locs[max_occ]:
+                j = 0
+                if(len(local_freq[index])==1):
+                    local_freq[index].pop(0)
+                while j < len(local_freq[index]):
+                    if(local_freq[index][j] == max_occ):
+                        if(j!=0):
+                            if local_freq[index][j-1] != max_occ:
+                                global_freq[local_freq[index][j-1]] -= chunk_dict[chunk_list[index]]
+                                if(global_freq[local_freq[index][j-1]]) == 0:
+                                    global_freq.pop(local_freq[index][j-1])
+
+                            target = (local_freq[index][j-1][0], max_occ[0]+max_occ[1])
+                            if target not in locs:
+                                locs[target] = set()
+                            
+                            if target not in global_freq:
+                                global_freq[target] = 0
+
+                            locs[target].add(index)
+                            local_freq[index][j-1] = target
+                            global_freq[target] += chunk_dict[chunk_list[index]]
+
+
+                        if(j!=len(local_freq[index])-1):
+                            if local_freq[index][j+1] != max_occ:
+                                global_freq[local_freq[index][j+1]] -= chunk_dict[chunk_list[index]]
+
+                                if(global_freq[local_freq[index][j+1]]) == 0:
+                                    global_freq.pop(local_freq[index][j+1])
+                            
+                            target = (max_occ[0]+max_occ[1], local_freq[index][j+1][1])
+                            if target not in locs:
+                                locs[target] = set()
+                            if target not in global_freq:
+                                global_freq[target] = 0
+
+                            locs[target].add(index)
+                            local_freq[index][j+1] = target
+                            global_freq[target] += chunk_dict[chunk_list[index]]
+                        local_freq[index].pop(j)
+                        j-=1
+                    j+=1
+            
+            locs.pop(max_occ)
+
+            update_et = time.perf_counter()
+            # print(f"Updating took {update_et-update_st:.4f} seconds.")
             i+=1
 
+
+# print(chunk_list_w)
 tok_set = set()
 vocab_list = []
 with open('Training_Data/tokenized/train.txt', 'w') as t:
     with open('bpe_vocablist.txt', 'w') as f:
-        for word in tok_list:
-            t.write(f"{word.replace('\n', '\\n')}\n")
-            if word not in tok_set:
-                tok_set.add(word)
-                vocab_list.append(word)
-                f.write(f"{word.replace('\n', '\\n')}\n")
+        i = 0
+        while i < len(local_freq):
+            if(len(local_freq[i])==0):
+                t.write(f"{chunk_list[i].replace('\n', '\\n')}\n \n")
+                if chunk_list[i] not in tok_set:
+                    f.write(f"{chunk_list[i].replace('\n', '\\n')}\n")
+                tok_set.add(chunk_list[i])
+            else:
+                tempset = set()
+                j = 0
+                while(j < len(local_freq[i])):
+                    if local_freq[i][j][0] not in tok_set:
+                        tok_set.add(local_freq[i][j][0])
+                        f.write(f"{local_freq[i][j][0].replace('\n', '\\n')}\n")
+                    t.write(f"{local_freq[i][j][0].replace('\n', '\\n')}\n")
+                    j+=1
+                if local_freq[i][-1][-1] not in tok_set:
+                    tok_set.add(local_freq[i][-1][-1])
+                    f.write(f"{local_freq[i][-1][-1].replace('\n', '\\n')}\n")
+                t.write(f"{local_freq[i][-1][-1].replace('\n', '\\n')}\n \n")
 
-# print(tok_list)
+            i+=1
+        
+
+print(chunk_list[:10])
+print(local_freq[:10])
 # print(freq_dict[max_occ])
 # print(vocab_list)
