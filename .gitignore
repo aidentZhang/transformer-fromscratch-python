@@ -1,2 +1,7 @@
 Weights/
 results.txt
+__pycache__
+lambda/
+numpy_layer/
+.vscode/
+.DS_store/
