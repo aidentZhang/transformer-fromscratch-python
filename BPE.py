@@ -17,26 +17,28 @@ chunk_list = []
 
 from datasets import load_dataset
 
-ds = load_dataset("wikimedia/wikipedia", "20231101.en")
+ds = load_dataset(
+    "wikimedia/wikipedia",
+    "20231101.en",
+    split="train",
+    streaming=True
+)
 
 
-print(len(ds))
-
-print(ds['train'][0]['text'])
 
 
 # directory_path = Path('./Training_Data/raw') 
 # files_list = [p for p in directory_path.iterdir() if p.is_file()]
+i = 0
+for file in ds:
+    if i > 100000: break
+    chunk_list += ["<STARTTEXT>"] + file['text'].split(" ")+ ["<ENDTEXT>"]
 
-with tqdm(total=len(ds['train'])) as pbar:
-    for file in ds['train']:
-        pbar.update(1)
-        chunk_list += ["<STARTTEXT>"] + file['text'].split(" ")+ ["<ENDTEXT>"]
-
-        print(f"File has size {sys.getsizeof(chunk_list)} bytes")
-        # if(sys.getsizeof(chunk_list)>15018942232):
-        if(sys.getsizeof(chunk_list)>8942232):
-            break
+    print(f"File has size {sys.getsizeof(chunk_list)} bytes")
+    # if(sys.getsizeof(chunk_list)>15018942232):
+    # if(sys.getsizeof(chunk_list)>8942232):
+    #     break
+    i+=1
 
 
 chunk_dict = {}
@@ -77,7 +79,7 @@ while k < len(chunk_list):
 
 
 with tqdm(total=num_times) as pbar:
-    with open('bpe_rules.txt', 'w') as f:
+    with open('bpe_rules.txt', 'w', encoding="utf-8") as f:
         while i < num_times:
             pbar.update(1)
 
@@ -159,8 +161,8 @@ with tqdm(total=num_times) as pbar:
 # print(chunk_list_w)
 tok_set = set()
 vocab_list = []
-with open('Training_Data/tokenized/train.txt', 'w') as t:
-    with open('bpe_vocablist.txt', 'w') as f:
+with open('Training_Data/tokenized/train.txt', 'w', encoding="utf-8") as t:
+    with open('bpe_vocablist.txt', 'w', encoding="utf-8") as f:
         i = 0
         while i < len(local_freq):
             if(len(local_freq[i])==0):
@@ -185,7 +187,7 @@ with open('Training_Data/tokenized/train.txt', 'w') as t:
             i+=1
         
 
-print(chunk_list[:10])
-print(local_freq[:10])
+# print(chunk_list[:10])
+# print(local_freq[:10])
 # print(freq_dict[max_occ])
 # print(vocab_list)
