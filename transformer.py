@@ -3,6 +3,7 @@ from tqdm import tqdm # timing bar for nice looks
 import params
 import mlx.core as mx
 from pathlib import Path
+import time
 #------------------
 #PARAM DECLARATIONS
 k_DModel = params.k_DModel #32
@@ -139,11 +140,11 @@ def fowardprop(input_llm, svocabDict):
         E_preln_cache[currAttBlock, 0] = mx.array(E)
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = mx.array(E_ln)
-        currAttHead = 0
-        while(currAttHead<k_Attheads):
-            E_soft_cache[currAttBlock, currAttHead] = softmax(1/mx.sqrt(k_DKey) * E_ln@sWq[currAttBlock, currAttHead]@(E_ln@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
-            E+= E_soft_cache[currAttBlock, currAttHead]@(E_ln@sWv[currAttBlock, currAttHead])
-            currAttHead+=1
+
+        E_stacked = mx.tile(E_ln, (k_Attheads, 1, 1))
+        E_soft_cache[currAttBlock] = softmax(1/mx.sqrt(k_DKey) * E_stacked@sWq[currAttBlock]@mx.transpose((E_stacked@sWk[currAttBlock]), [0, 2, 1])+sSoftmaxMask+padMask)
+        E+= mx.sum(E_soft_cache[currAttBlock]@(E_stacked@sWv[currAttBlock]), axis = 0)
+
         E_preln_cache[currAttBlock, 1] = mx.array(E)
         E_ln, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
         E_postln_cache[currAttBlock, 1] = mx.array(E_ln)
@@ -191,24 +192,34 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         currAttHead = 0
         G_preatt = mx.zeros((k_ContextLength, k_DModel))
         G_preln = mx.array(G)
-        while(currAttHead<k_Attheads):
-            g_Wv[currAttBlock, currAttHead]+=E_postln_cache[currAttBlock, 0].T@(E_soft_cache[currAttBlock, currAttHead].T@G)
-            V = E_postln_cache[currAttBlock, 0]@sWv[currAttBlock, currAttHead]
-            d_softmax = (E_soft_cache[currAttBlock, currAttHead])*(G@V.T-mx.sum(E_soft_cache[currAttBlock, currAttHead]*(G@V.T), axis = 1, keepdims = True))
-            g_Wq += (1/mx.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax@E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead]
-            g_Wk += (1/mx.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]
-            G1 =  E_soft_cache[currAttBlock, currAttHead].T@G@sWv[currAttBlock, currAttHead].T
-            G2 = (1/mx.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead])@sWq[currAttBlock, currAttHead].T
-            G3 = (1/mx.sqrt(k_DKey))*d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]@sWk[currAttBlock, currAttHead].T
-            G_preatt += G1+G2+G3
-            currAttHead+=1
+
+        # start = time.time()  # start time
+
+        g_Wv[currAttBlock]+=E_postln_cache[currAttBlock, 0].T@(mx.transpose(E_soft_cache[currAttBlock], [0, 2, 1])@G)
+        V = mx.transpose(E_postln_cache[currAttBlock, 0]@sWv[currAttBlock], [0, 2, 1])
+
+        d_softmax = (E_soft_cache[currAttBlock])*(G@V-mx.sum(E_soft_cache[currAttBlock, currAttHead]*(G@V), axis = 1, keepdims = True))
+        g_Wq += (1/mx.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax@E_postln_cache[currAttBlock, 0]@sWk[currAttBlock]
+        g_Wk += (1/mx.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@mx.transpose(d_softmax, [0, 2, 1])@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock]
+
+        G1 =  mx.transpose(E_soft_cache[currAttBlock], [0, 2, 1])@G@mx.transpose(sWv[currAttBlock], [0, 2, 1])
+        G2 = (1/mx.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0]@sWk[currAttBlock])@mx.transpose(sWq[currAttBlock], [0, 2, 1])
+        G3 = (1/mx.sqrt(k_DKey))*mx.transpose(d_softmax, [0, 2, 1])@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock]@mx.transpose(sWk[currAttBlock], [0, 2, 1])
+        G_preatt += mx.sum(G1+G2+G3, axis = 0)
+
+        
         G=mx.array(G_preatt)
+
+
+        # end = time.time()    # end time
+        # print("Elapsed time:", end - start, "seconds")
 
         g_LNBias[currAttBlock, 0] += mx.sum(G, axis = 0)
         g_LNGain[currAttBlock, 0] += mx.sum((E_midln_cache[currAttBlock, 0])*G, axis = 0)
         Xhat_mean = E_midln_cache[currAttBlock, 0]*(mx.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 1, keepdims=True))
         G= G_preln+(1/mx.sqrt(mx.var(E_preln_cache[currAttBlock, 0], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-mx.mean(G*sLNGain[currAttBlock, 0], axis = 1, keepdims=True)-Xhat_mean)
         currAttBlock-=1
+
     g_Wpos+=G
     g_We += We_to_E.T@G
     g_We[2] = mx.zeros(k_DModel)
@@ -425,95 +436,6 @@ if(True):
                         g_LB*=0
 
 
-if(False):
-    with open('results.txt', 'w') as f:
-        while True:
-                    word = train[0][:30]
-
-                    if(len(word)<k_ContextLength):
-                        amnt+=1
-                        word = list(word)
-                        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word, svocabDict)
-                        prediction = decode(E, vocab_list)
-                        # print(prediction)
-                        loss, onehot_cache = findLoss(E, word, svocabDict)
-                        backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
-                        f.write(f"{loss}\n")
-
-                    if(amnt%k_BatchSize == 0):
-                        t+=1
-
-                        g_LB/=k_BatchSize
-                        g_LW/=k_BatchSize
-                        g_MLPb2/=k_BatchSize
-                        g_MLPW2/=k_BatchSize
-                        g_MLPb1/=k_BatchSize
-                        g_MLPW1/=k_BatchSize
-                        g_LNBias/=k_BatchSize
-                        g_LNGain/=k_BatchSize
-                        g_Wv/=k_BatchSize
-                        g_Wq/=k_BatchSize
-                        g_Wk/=k_BatchSize
-                        g_Wpos/=k_BatchSize
-                        g_We/=k_BatchSize
-
-                        admt_We = k_Beta1*admt_We + (1-k_Beta1)*g_We
-                        admt_Wpos = k_Beta1*admt_Wpos + (1-k_Beta1)*g_Wpos
-                        admt_Wq = k_Beta1*admt_Wq + (1-k_Beta1)*g_Wq
-                        admt_Wk = k_Beta1*admt_Wk + (1-k_Beta1)*g_Wk
-                        admt_Wv = k_Beta1*admt_Wv + (1-k_Beta1)*g_Wv
-                        admt_MLPW1 = k_Beta1*admt_MLPW1 + (1-k_Beta1)*g_MLPW1
-                        admt_MLPW2 = k_Beta1*admt_MLPW2 + (1-k_Beta1)*g_MLPW2
-                        admt_MLPb1 = k_Beta1*admt_MLPb1 + (1-k_Beta1)*g_MLPb1
-                        admt_MLPb2 = k_Beta1*admt_MLPb2 + (1-k_Beta1)*g_MLPb2
-                        admt_LNGain = k_Beta1*admt_LNGain + (1-k_Beta1)*g_LNGain
-                        admt_LNBias = k_Beta1*admt_LNBias + (1-k_Beta1)*g_LNBias
-                        admt_LW = k_Beta1*admt_LW + (1-k_Beta1)*g_LW
-                        admt_LB = k_Beta1*admt_LB + (1-k_Beta1)*g_LB
-
-
-                        advt_We = k_Beta2*advt_We + (1-k_Beta2)*mx.square(g_We)
-                        advt_Wpos = k_Beta2*advt_Wpos + (1-k_Beta2)*mx.square(g_Wpos)
-                        advt_Wq = k_Beta2*advt_Wq + (1-k_Beta2)*mx.square(g_Wq)
-                        advt_Wk = k_Beta2*advt_Wk + (1-k_Beta2)*mx.square(g_Wk)
-                        advt_Wv = k_Beta2*advt_Wv + (1-k_Beta2)*mx.square(g_Wv)
-                        advt_MLPW1 = k_Beta2*advt_MLPW1 + (1-k_Beta2)*mx.square(g_MLPW1)
-                        advt_MLPW2 = k_Beta2*advt_MLPW2 + (1-k_Beta2)*mx.square(g_MLPW2)
-                        advt_MLPb1 = k_Beta2*advt_MLPb1 + (1-k_Beta2)*mx.square(g_MLPb1)
-                        advt_MLPb2 = k_Beta2*advt_MLPb2 + (1-k_Beta2)*mx.square(g_MLPb2)
-                        advt_LNGain = k_Beta2*advt_LNGain + (1-k_Beta2)*mx.square(g_LNGain)
-                        advt_LNBias = k_Beta2*advt_LNBias + (1-k_Beta2)*mx.square(g_LNBias)
-                        advt_LW = k_Beta2*advt_LW + (1-k_Beta2)*mx.square(g_LW)
-                        advt_LB = k_Beta2*advt_LB + (1-k_Beta2)*mx.square(g_LB)
-
-                
-                        sWe -= k_Alpha*(admt_We/(1-k_Beta1**t))/(mx.sqrt(advt_We/(1-k_Beta2**t))+k_Epsilon)
-                        sWpos -= k_Alpha*(admt_Wpos/(1-k_Beta1**t))/(mx.sqrt(advt_Wpos/(1-k_Beta2**t))+k_Epsilon)
-                        sWq -= k_Alpha*(admt_Wq/(1-k_Beta1**t))/(mx.sqrt(advt_Wq/(1-k_Beta2**t))+k_Epsilon)
-                        sWk -= k_Alpha*(admt_Wk/(1-k_Beta1**t))/(mx.sqrt(advt_Wk/(1-k_Beta2**t))+k_Epsilon)
-                        sWv -= k_Alpha*(admt_Wv/(1-k_Beta1**t))/(mx.sqrt(advt_Wv/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPW1 -= k_Alpha*(admt_MLPW1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW1/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPW2-= k_Alpha*(admt_MLPW2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPW2/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPb1 -= k_Alpha*(admt_MLPb1/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb1/(1-k_Beta2**t))+k_Epsilon)
-                        sMLPb2 -= k_Alpha*(admt_MLPb2/(1-k_Beta1**t))/(mx.sqrt(advt_MLPb2/(1-k_Beta2**t))+k_Epsilon)
-                        sLNGain -= k_Alpha*(admt_LNGain/(1-k_Beta1**t))/(mx.sqrt(advt_LNGain/(1-k_Beta2**t))+k_Epsilon)
-                        sLNBias-= k_Alpha*(admt_LNBias/(1-k_Beta1**t))/(mx.sqrt(advt_LNBias/(1-k_Beta2**t))+k_Epsilon)
-                        sLW -= k_Alpha*(admt_LW/(1-k_Beta1**t))/(mx.sqrt(advt_LW/(1-k_Beta2**t))+k_Epsilon)
-                        sLB -= k_Alpha*(admt_LB/(1-k_Beta1**t))/(mx.sqrt(advt_LB/(1-k_Beta2**t))+k_Epsilon)
-                        
-                        g_We*=0
-                        g_Wpos*=0
-                        g_Wq*=0
-                        g_Wk*=0
-                        g_Wv*=0
-                        g_MLPW1*=0
-                        g_MLPW2*=0
-                        g_MLPb1*=0
-                        g_MLPb2*=0
-                        g_LNGain*=0
-                        g_LNBias*=0
-                        g_LW*=0
-                        g_LB*=0
 
 
 mx.savez("./Weights/weights.npz", sWe=sWe, sWpos=sWpos, sWq=sWq, sWk=sWk, sWv=sWv, sMLPW1=sMLPW1, sMLPW2=sMLPW2, sMLPb1=sMLPb1, sMLPb2=sMLPb2, sLNGain=sLNGain, sLNBias=sLNBias, sLW=sLW, sLB=sLB)

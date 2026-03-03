@@ -3,6 +3,7 @@ import params
 
 weights = mx.load("./Weights/weights.npz")
 
+import time
 
 
 sWe = weights["sWe"]
@@ -41,7 +42,7 @@ def layerNorm(E, attLayer, prePostMLP):
     return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
 
 def softmax(E):
-    return mx.nan_to_num(mx.exp(E)/(mx.exp(E)@mx.ones((E.shape[1],1))), nan = 0)
+    return mx.nan_to_num(mx.exp(E)/(mx.exp(E)@mx.ones((E.shape[-1],1))), nan = 0)
 
 def relu(E):
     return mx.maximum(0, E)
@@ -150,10 +151,19 @@ def fowardprop(input_llm, svocabDict):
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = mx.array(E_ln)
         currAttHead = 0
-        while(currAttHead<k_Attheads):
-            E_soft_cache[currAttBlock, currAttHead] = softmax(1/mx.sqrt(k_DKey) * E_ln@sWq[currAttBlock, currAttHead]@(E_ln@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
-            E+= E_soft_cache[currAttBlock, currAttHead]@(E_ln@sWv[currAttBlock, currAttHead])
-            currAttHead+=1
+        start = time.time()  # start time
+        E_stacked = mx.tile(E_ln, (k_Attheads, 1, 1))
+        E_soft_cache[currAttBlock] = softmax(1/mx.sqrt(k_DKey) * E_stacked@sWq[currAttBlock]@mx.transpose((E_stacked@sWk[currAttBlock]), [0, 2, 1])+sSoftmaxMask+padMask)
+
+        E+= mx.sum(E_soft_cache[currAttBlock]@(E_stacked@sWv[currAttBlock]), axis = 0)
+
+        # while(currAttHead<k_Attheads):
+        #     E_soft_cache[currAttBlock, currAttHead] = softmax(1/mx.sqrt(k_DKey) * E_ln@sWq[currAttBlock, currAttHead]@(E_ln@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
+        #     E+= E_soft_cache[currAttBlock, currAttHead]@(E_ln@sWv[currAttBlock, currAttHead])
+        #     currAttHead+=1
+
+        end = time.time()    # end time
+        print("Elapsed time:", end - start, "seconds")
         E_preln_cache[currAttBlock, 1] = mx.array(E)
         E_ln, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
         E_postln_cache[currAttBlock, 1] = mx.array(E_ln)
