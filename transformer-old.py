@@ -18,29 +18,29 @@ k_DKey = k_DQuery
 #------------------
 #SETUP DATA STRUCTS
 
-# Generate as float32, then cast to float32
-sWe = cp.random.normal(loc=0, scale=0.02, size=(k_VocabSize, k_DModel), dtype=cp.float32).astype(cp.float32)
-sWe[2] = cp.zeros(k_DModel, dtype=cp.float32)
-sWpos = cp.random.normal(loc=0, scale=0.02, size=(k_ContextLength, k_DModel), dtype=cp.float32).astype(cp.float32)
+# Generate as float32, then cast to float16
+sWe = cp.random.normal(loc=0, scale=0.02, size=(k_VocabSize, k_DModel), dtype=cp.float32).astype(cp.float16)
+sWe[2] = cp.zeros(k_DModel, dtype=cp.float16)
+sWpos = cp.random.normal(loc=0, scale=0.02, size=(k_ContextLength, k_DModel), dtype=cp.float32).astype(cp.float16)
 
 # Scaling operations can happen before or after the cast; leaving them after is fine.
-sWq = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWk = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
+sWq = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float16) / cp.sqrt(k_Attheads)
+sWk = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float16) / cp.sqrt(k_Attheads)
+sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32).astype(cp.float16) / cp.sqrt(k_Attheads)
 
-sMLPW1 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32).astype(cp.float32)
-sMLPW2 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, 4*k_DModel, k_DModel), dtype=cp.float32).astype(cp.float32)
+sMLPW1 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32).astype(cp.float16)
+sMLPW2 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, 4*k_DModel, k_DModel), dtype=cp.float32).astype(cp.float16)
 
-# cp.zeros and cp.ones support float32 natively, so these don't need casting
-sMLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
-sMLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float32)
-sLNGain = cp.ones((k_AttBlocks, 2, k_DModel), dtype=cp.float32) 
-sLNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
+# cp.zeros and cp.ones support float16 natively, so these don't need casting
+sMLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float16)
+sMLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float16)
+sLNGain = cp.ones((k_AttBlocks, 2, k_DModel), dtype=cp.float16) 
+sLNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
 
-sLW = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_VocabSize)), size=(k_DModel, k_VocabSize), dtype=cp.float32).astype(cp.float32)
-sLB = cp.zeros((1, k_VocabSize), dtype=cp.float32) 
+sLW = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_VocabSize)), size=(k_DModel, k_VocabSize), dtype=cp.float32).astype(cp.float16)
+sLB = cp.zeros((1, k_VocabSize), dtype=cp.float16) 
 
-sSoftmaxMask = cp.nan_to_num(-cp.inf * cp.triu(cp.ones((k_ContextLength, k_ContextLength), dtype=cp.float32), k=1), nan=0.0)
+sSoftmaxMask = cp.nan_to_num(-cp.inf * cp.triu(cp.ones((k_ContextLength, k_ContextLength), dtype=cp.float16), k=1), nan=0.0)
 #E has dimension k_ContextLength x k_DModel
 #testing
 # sWq[0][0] = [[1,0],[0,1]]
@@ -54,7 +54,7 @@ sSoftmaxMask = cp.nan_to_num(-cp.inf * cp.triu(cp.ones((k_ContextLength, k_Conte
 # sLNBias = cp.zeros((k_AttBlocks, 2, k_DModel))
 # sLW = cp.random.normal(0, cp.sqrt(2/(k_DModel+k_VocabSize)), size = (k_DModel, 1))
 # sLB = cp.ones((k_VocabSize)) #ADDED TO ALL TOKENS
-# E = [[1, 2]]   
+# E = [[1, 2]]
 #------------------
 #TRANSFORMER FUNCTIONS
 def layerNorm(E, attLayer, prePostMLP):
@@ -62,9 +62,7 @@ def layerNorm(E, attLayer, prePostMLP):
     return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
 
 def softmax(E):
-    return cp.nan_to_num(cp.exp(E)/(cp.exp(E)@cp.ones((E.shape[2],1))), nan = 0)
-
-# def softbatch(E):
+    return cp.nan_to_num(cp.exp(E)/(cp.exp(E)@cp.ones((E.shape[1],1))), nan = 0)
 
 def relu(E):
     return cp.maximum(0, E)
@@ -94,82 +92,75 @@ def decode(E, svocabList):
     return answer
 #------------------------------------------------------------------------------------------------------------------------------FINISH
 def findLoss(E, input_llm, svocabDict):
-    loss = []
-    onehot_cache = cp.zeros((k_BatchSize, k_ContextLength, k_VocabSize))
-    for j in range(len(input_llm)):
-        temp_loss = 0
-        i=0
-        while i < len(input_llm[j]):
-            if input_llm[j][i] in svocabDict:
-                onehot_cache[j, i, svocabDict[input_llm[j][i]]] = 1
-                temp_loss += -cp.log(E[j][i][svocabDict[input_llm[j][i]]]+0.00001)
-            else:
-                onehot_cache[j, i, k_VocabSize-1] = 1
-                temp_loss += -cp.log(E[j][i][k_VocabSize-1]+0.00001)
-            i+=1
-        temp_loss = (temp_loss-cp.log(E[j][len(input_llm[j])][1]+0.001))/len(input_llm[j])
-        onehot_cache[j, len(input_llm[j]), 1] = 1
-        loss.append(temp_loss)
+    loss = 0
+    i = 0
+    onehot_cache = cp.zeros((k_ContextLength, k_VocabSize))
+
+    while i < len(input_llm):
+        if input_llm[i] in svocabDict:
+            onehot_cache[i, svocabDict[input_llm[i]]] = 1
+            loss += -cp.log(E[i][svocabDict[input_llm[i]]]+0.00001)
+        else:
+            onehot_cache[i, k_VocabSize-1] = 1
+            loss += -cp.log(E[i][k_VocabSize-1]+0.00001)
+
+        i+=1
+    loss = (loss-cp.log(E[len(input_llm)][1]+0.001))/len(input_llm)
+    onehot_cache[len(input_llm), 1] = 1
     return loss, onehot_cache
 #------------------
 #FORWARD PROPAGATE
 def fowardprop(input_llm, svocabDict):
     #------------------
     #CACHEING
-    E_preln_cache = cp.zeros((k_AttBlocks, 2, k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
-    E_midln_cache = cp.zeros((k_AttBlocks, 2, k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
-    E_postln_cache = cp.zeros((k_AttBlocks, 2, k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
-    E_soft_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_ContextLength), dtype=cp.float32)
-    E_lin_cache = cp.zeros((k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
-    E_relu_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_ContextLength, k_DModel*4), dtype=cp.float32)
+    E_preln_cache = cp.zeros((k_AttBlocks, 2, k_ContextLength, k_DModel), dtype=cp.float16)
+    E_midln_cache = cp.zeros((k_AttBlocks, 2, k_ContextLength, k_DModel), dtype=cp.float16)
+    E_postln_cache = cp.zeros((k_AttBlocks, 2, k_ContextLength, k_DModel), dtype=cp.float16)
+    E_soft_cache = cp.zeros((k_AttBlocks, k_Attheads, k_ContextLength, k_ContextLength), dtype=cp.float16)
+    E_lin_cache = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float16)
+    E_relu_cache = cp.zeros((k_AttBlocks, k_ContextLength, k_DModel*4), dtype=cp.float16)
     
-    E = cp.zeros((k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
 
-    padMask = cp.zeros((k_BatchSize,  k_ContextLength, k_ContextLength))
-    for i in range(k_BatchSize):
-        padMask[i, :, len(input_llm[i])+1:k_ContextLength] = -cp.inf
+    padMask = cp.zeros((k_ContextLength, k_ContextLength))
+    padMask[:, len(input_llm)+1:k_ContextLength] = -cp.inf
 
-        temp = cp.zeros(k_VocabSize)
-        temp[2] = 1
-        We_to_E = cp.zeros((k_ContextLength, k_VocabSize))
-        We_to_E[0, 0] = 1
-        o = 1
-        for j in input_llm[i]:
-            if j in svocabDict:
-                We_to_E[o, [svocabDict[j]]] = 1
-            else:
-                We_to_E[o, k_VocabSize-1] = 1
-            o+=1
+    temp = cp.zeros(k_VocabSize)
+    temp[2] = 1
+    We_to_E = cp.zeros((k_ContextLength, k_VocabSize))
+    We_to_E[0, 0] = 1
+    i = 1
+    for j in input_llm:
+        if j in svocabDict:
+            We_to_E[i, [svocabDict[j]]] = 1
+        else:
+            We_to_E[i, k_VocabSize-1] = 1
+        i+=1
+    while(i<k_ContextLength):
+        We_to_E[i, 2] = 1
+        i+=1
+    E = We_to_E@sWe
 
-        while(o<k_ContextLength):
-            We_to_E[o, 2] = 1
-            o+=1
-
-        E[i] = We_to_E@sWe
-
-        for j in range(len(input_llm[i])+1):
-            E[i][j]+=sWpos[j]
-
+    i = 0
+    while(i<len(input_llm)+1):
+        E[i]+=sWpos[i]
+        i+=1
 
     currAttBlock = 0
     while(currAttBlock < k_AttBlocks):
         E_preln_cache[currAttBlock, 0] = cp.array(E)
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = cp.array(E_ln)
-
-        E_stacked = cp.tile(cp.expand_dims(E_ln, axis=1), (1, k_Attheads, 1, 1))
-        
-        E_soft_cache[currAttBlock] = softmax(1/cp.sqrt(k_DKey) * E_stacked@sWq[currAttBlock]@cp.transpose((E_stacked@sWk[currAttBlock]), [0, 1, 3, 2])+sSoftmaxMask+cp.expand_dims(padMask, axis=1))
-
-        E+= cp.sum(E_soft_cache[currAttBlock]@(E_stacked@sWv[currAttBlock]), axis = 1)
-
+        currAttHead = 0
+        while(currAttHead<k_Attheads):
+            E_soft_cache[currAttBlock, currAttHead] = softmax(1/cp.sqrt(k_DKey) * E_ln@sWq[currAttBlock, currAttHead]@(E_ln@sWk[currAttBlock, currAttHead]).T+sSoftmaxMask+padMask)
+            E+= E_soft_cache[currAttBlock, currAttHead]@(E_ln@sWv[currAttBlock, currAttHead])
+            currAttHead+=1
         E_preln_cache[currAttBlock, 1] = cp.array(E)
         E_ln, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
         E_postln_cache[currAttBlock, 1] = cp.array(E_ln)
         E_relu_cache[currAttBlock] = relu(E_ln@sMLPW1[currAttBlock]+sMLPb1[currAttBlock])
         E += E_relu_cache[currAttBlock]@sMLPW2[currAttBlock]+sMLPb2[currAttBlock]
         currAttBlock+=1
-    
     E_lin_cache = cp.array(E)
     E=E@sLW+sLB
     E=softmax(E)
@@ -193,88 +184,52 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
     global g_LB
 
+    print(cp.shape(E_lin_cache))
+    print(cp.shape(E-onehot_cache))
 
-    g_LW+=cp.sum(cp.transpose(E_lin_cache, [0, 2, 1])@(E-onehot_cache), axis=0)
-    g_LB+=cp.sum(cp.sum((E-onehot_cache), axis=1), axis=0)
+    g_LW+=E_lin_cache.T@(E-onehot_cache)
+    g_LB+=cp.sum((E-onehot_cache), axis=0)
     
     G = (E-onehot_cache)@sLW.T
     currAttBlock = k_AttBlocks-1
-    currAttBlock = k_AttBlocks-1
-
     while(currAttBlock>=0):
         G_preln = cp.array(G)
-        g_MLPb2[currAttBlock]+=cp.sum(cp.sum(G, axis=1), axis=0)
-        g_MLPW2[currAttBlock]+=cp.sum(cp.transpose(E_relu_cache[currAttBlock], [0, 2, 1])@G, axis=0)
-
-
-        g_MLPb1[currAttBlock]+=cp.sum(((G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock])), axis=[0, 1])
-        g_MLPW1[currAttBlock]+=cp.sum((cp.transpose(E_postln_cache[currAttBlock, 1], [0, 2, 1])) @ ((G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock])), axis=0)
-
+        g_MLPb2[currAttBlock]+=cp.sum(G, axis=0)
+        g_MLPW2[currAttBlock]+=E_relu_cache[currAttBlock].T@G
+        g_MLPb1[currAttBlock]+=cp.sum(((G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock]))[0], axis=0)
+        g_MLPW1[currAttBlock]+=(E_postln_cache[currAttBlock, 1].T) @ ((G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock]))
         G = (G@(sMLPW2[currAttBlock].T))*relu_deriv(E_relu_cache[currAttBlock])@sMLPW1[currAttBlock].T
-
-        g_LNBias[currAttBlock, 1] += cp.sum(cp.sum(G, axis = 1), axis=0)
-        g_LNGain[currAttBlock, 1] += cp.sum(cp.sum((E_midln_cache[currAttBlock, 1])*G, axis = 1), axis=0)
-        
-        
-        Xhat_mean = E_midln_cache[currAttBlock, 1]*(cp.mean((G*sLNGain[currAttBlock, 1])*E_midln_cache[currAttBlock, 1], axis = 2, keepdims=True))
-        G= G_preln+(1/cp.sqrt(cp.var(E_preln_cache[currAttBlock, 1], axis = 2, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 1]-cp.mean(G*sLNGain[currAttBlock, 1], axis = 2, keepdims=True)-Xhat_mean)
-
-
+        g_LNBias[currAttBlock, 1] += cp.sum(G, axis = 0)
+        g_LNGain[currAttBlock, 1] += cp.sum((E_midln_cache[currAttBlock, 1])*G, axis = 0)
+        Xhat_mean = E_midln_cache[currAttBlock, 1]*(cp.mean((G*sLNGain[currAttBlock, 1])*E_midln_cache[currAttBlock, 1], axis = 1, keepdims=True))
+        G= G_preln+(1/cp.sqrt(cp.var(E_preln_cache[currAttBlock, 1], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 1]-cp.mean(G*sLNGain[currAttBlock, 1], axis = 1, keepdims=True)-Xhat_mean)
+        currAttHead = 0
+        G_preatt = cp.zeros((k_ContextLength, k_DModel))
         G_preln = cp.array(G)
+        while(currAttHead<k_Attheads):
+            g_Wv[currAttBlock, currAttHead]+=E_postln_cache[currAttBlock, 0].T@(E_soft_cache[currAttBlock, currAttHead].T@G)
+            V = E_postln_cache[currAttBlock, 0]@sWv[currAttBlock, currAttHead]
 
-        G=G[:, None, :, :]
-
-        # print(cp.shape(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G))
-        # print(cp.shape(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])))
-
-        g_Wv[currAttBlock]+=cp.sum(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G), axis=0)
-        # print(cp.shape(E_postln_cache[currAttBlock, 0]))
-        # print(cp.shape(sWv[currAttBlock]))
-        V = cp.transpose(E_postln_cache[currAttBlock, 0][:, None, :, :]@sWv[currAttBlock], [0, 1, 3, 2])
-
-        # print(np.shape(V))
-        # print(np.shape(G))
-
-
-        d_softmax = (E_soft_cache[currAttBlock])*(G@V-cp.sum(E_soft_cache[currAttBlock]*(G@V), axis = 3, keepdims = True))
-
-
-
-        g_Wq += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@d_softmax@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWk[currAttBlock], axis=0)
-       
-       
-
-        g_Wk += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(d_softmax, [0, 1, 3, 2])@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWq[currAttBlock], axis=0)
-
-        # print(cp.shape(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])))
-        # print(cp.shape(G))
-        # print(cp.shape(cp.transpose(sWv[currAttBlock], [0, 2, 1])))
-
-        G1 =  cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G@cp.transpose(sWv[currAttBlock], [0, 2, 1])
-        # print(cp.shape(G1))
-        # print(cp.shape(d_softmax))
-        # print(cp.shape(E_postln_cache[currAttBlock, 0][:, None, :, :]))
-        # print(cp.shape(sWk[currAttBlock]))
-        # print(cp.shape(cp.transpose(sWq[currAttBlock], [0, 2, 1])))
-
-        G2 = (1/cp.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0][:, None, :, :]@sWk[currAttBlock])@cp.transpose(sWq[currAttBlock], [0, 2, 1])
-
-
-        G3 = (1/cp.sqrt(k_DKey))*cp.transpose(d_softmax, [0, 1, 3, 2])@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWq[currAttBlock]@cp.transpose(sWk[currAttBlock], [0, 2, 1])
-        # print(cp.shape(G1), " ", cp.shape(G2), " ", cp.shape(G3), " ")
-
-        G_preatt = cp.sum(G1+G2+G3, axis=1)
-        # print(cp.shape(G_preatt))
+            print(np.shape(V))
+            print(np.shape(G))
+            
+            d_softmax = (E_soft_cache[currAttBlock, currAttHead])*(G@V.T-cp.sum(E_soft_cache[currAttBlock, currAttHead]*(G@V.T), axis = 1, keepdims = True))
+            g_Wq += (1/cp.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax@E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead]
+            g_Wk += (1/cp.sqrt(k_DKey))*E_postln_cache[currAttBlock, 0].T@d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]
+            G1 =  E_soft_cache[currAttBlock, currAttHead].T@G@sWv[currAttBlock, currAttHead].T
+            G2 = (1/cp.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0]@sWk[currAttBlock, currAttHead])@sWq[currAttBlock, currAttHead].T
+            G3 = (1/cp.sqrt(k_DKey))*d_softmax.T@E_postln_cache[currAttBlock, 0]@sWq[currAttBlock, currAttHead]@sWk[currAttBlock, currAttHead].T
+            G_preatt += G1+G2+G3
+            currAttHead+=1
         G=cp.array(G_preatt)
 
-        g_LNBias[currAttBlock, 0] += cp.sum(cp.sum(G, axis = 1), axis=0)
-        g_LNGain[currAttBlock, 0] += cp.sum(cp.sum((E_midln_cache[currAttBlock, 0])*G, axis = 1), axis=0)
-
-        Xhat_mean = E_midln_cache[currAttBlock, 0]*(cp.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 2, keepdims=True))
-        G= G_preln+(1/cp.sqrt(cp.var(E_preln_cache[currAttBlock, 0], axis = 2, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-cp.mean(G*sLNGain[currAttBlock, 0], axis = 2, keepdims=True)-Xhat_mean)
+        g_LNBias[currAttBlock, 0] += cp.sum(G, axis = 0)
+        g_LNGain[currAttBlock, 0] += cp.sum((E_midln_cache[currAttBlock, 0])*G, axis = 0)
+        Xhat_mean = E_midln_cache[currAttBlock, 0]*(cp.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 1, keepdims=True))
+        G= G_preln+(1/cp.sqrt(cp.var(E_preln_cache[currAttBlock, 0], axis = 1, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-cp.mean(G*sLNGain[currAttBlock, 0], axis = 1, keepdims=True)-Xhat_mean)
         currAttBlock-=1
-    g_Wpos+=cp.sum(G, axis=0)
-    g_We += cp.sum(We_to_E.T@G, axis=0)
+    g_Wpos+=G
+    g_We += We_to_E.T@G
     g_We[2] = cp.zeros(k_DModel)
 
 
@@ -285,48 +240,48 @@ k_Beta2 = params.k_Beta2
 k_Epsilon = params.k_Epsilon
 k_Lambda = params.k_Lambda
 
-g_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
-g_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
-g_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-g_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-g_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
-g_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
-g_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
-g_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
-g_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float32)
-g_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-g_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-g_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float32)
-g_LB = cp.zeros((k_VocabSize), dtype=cp.float32)
+g_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float16)
+g_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float16)
+g_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float16)
+g_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float16)
+g_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float16)
+g_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float16)
+g_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float16)
+g_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float16)
+g_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float16)
+g_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+g_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+g_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float16)
+g_LB = cp.zeros((k_VocabSize), dtype=cp.float16)
 
-admt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
-admt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
-admt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-admt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype = cp.float32)
-admt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
-admt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
-admt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
-admt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
-admt_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float32)
-admt_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-admt_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-admt_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float32)
-admt_LB = cp.zeros((k_VocabSize), dtype=cp.float32)
+admt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float16)
+admt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float16)
+admt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float16)
+admt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype = cp.float16)
+admt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float16)
+admt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float16)
+admt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float16)
+admt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float16)
+admt_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float16)
+admt_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+admt_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+admt_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float16)
+admt_LB = cp.zeros((k_VocabSize), dtype=cp.float16)
 
 
-advt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
-advt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
-advt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-advt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-advt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
-advt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
-advt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
-advt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
-advt_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float32)
-advt_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-advt_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float32)
-advt_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float32)
-advt_LB = cp.zeros((k_VocabSize), dtype=cp.float32)
+advt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float16)
+advt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float16)
+advt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float16)
+advt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float16)
+advt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float16)
+advt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float16)
+advt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float16)
+advt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float16)
+advt_MLPb2 = cp.zeros((k_AttBlocks, 1, k_DModel), dtype=cp.float16)
+advt_LNGain = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+advt_LNBias = cp.zeros((k_AttBlocks, 2, k_DModel), dtype=cp.float16)
+advt_LW = cp.zeros((k_DModel, k_VocabSize), dtype=cp.float16)
+advt_LB = cp.zeros((k_VocabSize), dtype=cp.float16)
 
 #---------------------------------
 #Data processing functions
@@ -360,7 +315,7 @@ for file in files_list:
             train[0].append(line[:-1].replace('\\n', '\n'))
 num_times = params.num_times
 
-with open('bpe_rules.txt', 'r', encoding="utf-8") as f:
+with open('bpe_rules.txt', 'r') as f:
     rule_list = []
     i = 0
     while(i < num_times):
@@ -402,33 +357,28 @@ avgloss = 0
 
 
 if(True):
-    with open('results.txt', 'w', encoding="utf-8") as f:
+    with open('results.txt', 'w') as f:
         for text in train:
             with tqdm(total=int(shift_factor*(len(text)/k_ContextLength))) as pbar:
-                curr_start =   k_ContextLength-1
-                input_batch = []
+                curr_start = k_ContextLength-1
                 while(curr_start<len(text)-k_ContextLength):
-
                     word = text[curr_start:(curr_start+k_ContextLength-1)]
                     curr_start+=int(k_ContextLength/shift_factor)
                     pbar.update(1)
+
                     if(len(word)<k_ContextLength):
                         amnt+=1
-                        input_batch.append(word)
-                        
-
-
-                    if(amnt%k_BatchSize == 0):
-
-                        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(input_batch, svocabDict)
+                        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(word, svocabDict)
                         # prediction = decode(E, vocab_list)
                         # print(prediction)
-                        loss, onehot_cache = findLoss(E, input_batch, svocabDict)
+                        loss, onehot_cache = findLoss(E, word, svocabDict)
+                        avgloss+=loss
                         backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
-                        input_batch = []
-                        loss = cp.array(loss)
+
+                    if(amnt%k_BatchSize == 0):
+ 
                         t+=1
-                        f.write(f"{cp.mean(loss)}\n")
+                        f.write(f"{avgloss/k_BatchSize}\n")
                         avgloss=0
                         g_LB/=k_BatchSize
                         g_LW/=k_BatchSize

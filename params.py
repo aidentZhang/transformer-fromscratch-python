@@ -5,7 +5,7 @@ k_VocabSize = 22535+5 #plus five for start, end, pad, and space at start      la
 k_Attheads = 4
 k_AttBlocks = 4
 k_DQuery = 96
-num_times = 5000
+num_times = 25000
 
 k_ShiftFactor = 2
 k_BatchSize = 32
