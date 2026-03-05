@@ -1,4 +1,4 @@
-import mlx.core as mx
+import cupy as mx
 import params
 
 weights = mx.load("./Weights/weights.npz")
@@ -89,20 +89,6 @@ def findLoss(E, input_llm, svocabDict):
     return loss, onehot_cache
 
 
-def embed(rule_list, case):
-    i = 0
-    while(i < len(rule_list)):
-        j=0
-        max_occ = rule_list[i]
-        while(j < len(case)-1):
-            if(max_occ == (case[j], case[j+1])):
-                case[j]+=case[j+1]
-                case.pop(j+1)
-                j-=1
-            j+=1
-        i+=1
-    return case
-
 
 
 
@@ -167,17 +153,53 @@ def fowardprop(input_llm, svocabDict):
     return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E
 
 
+
+#---------------------------------
+#Data processing functions
+def embed(svocabDict, case):
+    embeded=[]
+
+    words = case.split()
+
+    processed_text = [
+        [hex(ord(char))[2:] for char in word] + ["</w>"] 
+        for word in words
+    ]
+    case=processed_text
+    # with tqdm(total=len(case)) as pbar:
+    for word in case:
+        # pbar.update(1)
+        i=0
+        last = len(word)
+        while(i!=len(word)):
+            # print(word, " ", i,  " ", last, " ", ''.join(word[i:last]))
+            if(''.join(word[i:last]) in svocabDict):
+                embeded.append(''.join(word[i:last]))
+                i=last
+                last=len(word)
+            else:
+                last-=1
+                if last <= i:
+                    embeded.append("</UNKOWN>")
+                    break
+    return embeded
+#---------------------------------
+#Data processing
+
+
 num_times = params.num_times
 
-with open('bpe_rules.txt', 'r') as f:
+with open('bpe_rules.txt', 'r', encoding="utf-8") as f:
     rule_list = []
     i = 0
     while(i < num_times):
-        rule_list.append((next(f)[:-1].replace('\\n', '\n'), next(f)[:-1].replace('\\n', '\n')))
+        try:
+            rule_list.append((next(f)[:-1].replace('\\n', '\n'), next(f)[:-1].replace('\\n', '\n')))
+        except:
+            print(i)
+            break
         i+=1
-#     for i in range(len(train)):
-#         train[i] = embed(rule_list, train[i])
-        # print(len(train[i])) #max length is aroudn 200, howvers around 40-70 usually
+
 
 svocabDict = {}
 vocab_list = []
@@ -189,29 +211,44 @@ i = 4
 
 
 
-with open('bpe_vocablist.txt', 'r') as f:
+with open('bpe_vocablist.txt', 'r', encoding="utf-8") as f:
     for line in f:
         vocab_list.append(line[:-1].replace('\\n', '\n'))
         svocabDict[vocab_list[-1]] = i
         i+=1
-amnt = 0
 loss = 0
+import re
+import time
+import string
 
-
+def is_hex(s):
+    return all(c in string.hexdigits for c in s)
 
 while(True):
     q = input("input_llm part of a word, a char, or something: ")
-    q = list(q)
-    q = embed(rule_list, q)
+    q = embed(svocabDict, q)
     k = len(q)
     print(q)
     while k < k_ContextLength:
+        print("", end='')
         E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(q, svocabDict)
         prediction = decode(E, vocab_list)
-        loss, onehot_cache = findLoss(E, q, svocabDict)
+        # loss, onehot_cache = findLoss(E, q, svocabDict)
         # print(loss)
         # print(prediction)
         q.append(prediction[k])
-        print(prediction[k], end='')
+
+        text = prediction[k].split("</w>")
+
+        post_processed = [
+            bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
+            for word in text
+        ]
+
+        final_text = " ".join(post_processed)
+
+        print(final_text, end='')
         k+=1
+
     print("")
+    # print(q)
