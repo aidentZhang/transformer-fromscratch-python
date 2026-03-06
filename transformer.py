@@ -27,7 +27,8 @@ sWpos = cp.random.normal(loc=0, scale=0.02, size=(k_ContextLength, k_DModel), dt
 # Scaling operations can happen before or after the cast; leaving them after is fine.
 sWq = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
 sWk = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
+sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
+sWo = cp.random.normal(loc=0, scale=cp.sqrt(1/(k_DModel+k_Attheads*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32) / cp.sqrt(k_Attheads)
 
 sMLPW1 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32).astype(cp.float32)
 sMLPW2 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, 4*k_DModel, k_DModel), dtype=cp.float32).astype(cp.float32)
@@ -71,7 +72,7 @@ def relu(E):
     return cp.maximum(0, E)
 
 def relu_deriv(E):
-    return cp.minimum(1, E)
+    return (E > 0).astype(cp.float32)
 
 def decode(E, svocabList):
     temp = cp.argmax(E, axis = -1)
@@ -123,6 +124,11 @@ def fowardprop(input_llm, svocabDict):
     E_soft_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_ContextLength), dtype=cp.float32)
     E_lin_cache = cp.zeros((k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
     E_relu_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_ContextLength, k_DModel*4), dtype=cp.float32)
+    E_conc_cache= cp.zeros((k_AttBlocks, k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
+    Q_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_DKey))
+    K_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_DKey))
+    V_cache = cp.zeros((k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_DModel//k_Attheads))
+    We_to_E_cache = cp.zeros((k_BatchSize, k_ContextLength, k_VocabSize), dtype=cp.float32)    
     
     E = cp.zeros((k_BatchSize, k_ContextLength, k_DModel), dtype=cp.float32)
 
@@ -147,7 +153,7 @@ def fowardprop(input_llm, svocabDict):
             o+=1
 
         E[i] = We_to_E@sWe
-
+        We_to_E_cache[i]=We_to_E
         for j in range(len(input_llm[i])+1):
             E[i][j]+=sWpos[j]
 
@@ -158,11 +164,16 @@ def fowardprop(input_llm, svocabDict):
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = cp.array(E_ln)
 
-        E_stacked = cp.tile(cp.expand_dims(E_ln, axis=1), (1, k_Attheads, 1, 1))
-        
-        E_soft_cache[currAttBlock] = softmax(1/cp.sqrt(k_DKey) * E_stacked@sWq[currAttBlock]@cp.transpose((E_stacked@sWk[currAttBlock]), [0, 1, 3, 2])+sSoftmaxMask+cp.expand_dims(padMask, axis=1))
-
-        E+= cp.sum(E_soft_cache[currAttBlock]@(E_stacked@sWv[currAttBlock]), axis = 1)
+        Q=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        K=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        V=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
+        Q_cache[currAttBlock]=Q
+        K_cache[currAttBlock]=K
+        V_cache[currAttBlock]=V
+        E_soft_cache[currAttBlock] = softmax(1/cp.sqrt(k_DKey) * Q@cp.transpose(K, [0, 1, 3, 2])+sSoftmaxMask+cp.expand_dims(padMask, axis=1))
+        # print(cp.shape(cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])))
+        E_conc_cache[currAttBlock] = cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])
+        E+= E_conc_cache[currAttBlock]@sWo[currAttBlock]
 
         E_preln_cache[currAttBlock, 1] = cp.array(E)
         E_ln, E_midln_cache[currAttBlock, 1] = layerNorm(E, currAttBlock, 1)
@@ -175,10 +186,10 @@ def fowardprop(input_llm, svocabDict):
     E=E@sLW+sLB
     E=softmax(E)
 
-    return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E
+    return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E_cache, E_conc_cache, Q_cache, K_cache, V_cache
 #------------------
 #BACKPROP
-def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E):
+def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache):
     global g_We 
     global g_Wpos 
     global g_Wq 
@@ -198,7 +209,7 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
     g_LW+=cp.sum(cp.transpose(E_lin_cache, [0, 2, 1])@(E-onehot_cache), axis=0)
     g_LB+=cp.sum(cp.sum((E-onehot_cache), axis=1), axis=0)
     
-    G = (E-onehot_cache)@sLW.T
+    G = (E-onehot_cache)@sLW.T/k_ContextLength
     currAttBlock = k_AttBlocks-1
     currAttBlock = k_AttBlocks-1
 
@@ -223,45 +234,44 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
         G_preln = cp.array(G)
 
-        G=G[:, None, :, :]
 
-        # print(cp.shape(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G))
-        # print(cp.shape(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])))
+        
 
-        g_Wv[currAttBlock]+=cp.sum(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G), axis=0)
+        g_Wo[currAttBlock]+=cp.sum(cp.transpose(E_conc_cache[currAttBlock], [0, 2, 1])@G, axis=0)
+        # print(cp.shape(G@sWo[currAttBlock].T))
+        # print(cp.shape(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@cp.transpose(cp.reshape(G@sWo[currAttBlock].T, [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])))
+
+        g_Wv[currAttBlock]+=cp.sum(cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@cp.transpose(cp.reshape(G@sWo[currAttBlock].T, [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3]), axis=0)
         # print(cp.shape(E_postln_cache[currAttBlock, 0]))
         # print(cp.shape(sWv[currAttBlock]))
-        V = cp.transpose(E_postln_cache[currAttBlock, 0][:, None, :, :]@sWv[currAttBlock], [0, 1, 3, 2])
-
-        # print(np.shape(V))
-        # print(np.shape(G))
+        dA = cp.transpose(cp.reshape(G@sWo[currAttBlock].T, [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])@cp.transpose(V_cache[currAttBlock], [0, 1, 3, 2])
 
 
-        d_softmax = (E_soft_cache[currAttBlock])*(G@V-cp.sum(E_soft_cache[currAttBlock]*(G@V), axis = 3, keepdims = True))
+        d_softmax = (E_soft_cache[currAttBlock])*(dA-cp.sum(E_soft_cache[currAttBlock]*(dA), axis = 3, keepdims = True))
 
 
-
-        g_Wq += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@d_softmax@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWk[currAttBlock], axis=0)
+ 
+        g_Wq += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@d_softmax@K_cache[currAttBlock], axis=0)
        
        
 
-        g_Wk += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(d_softmax, [0, 1, 3, 2])@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWq[currAttBlock], axis=0)
+        g_Wk += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(d_softmax, [0, 1, 3, 2])@Q_cache[currAttBlock], axis=0)
 
         # print(cp.shape(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])))
         # print(cp.shape(G))
         # print(cp.shape(cp.transpose(sWv[currAttBlock], [0, 2, 1])))
-
-        G1 =  cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G@cp.transpose(sWv[currAttBlock], [0, 2, 1])
+        G1 = cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@cp.transpose(cp.reshape(G@sWo[currAttBlock].T, [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])@cp.transpose(sWv[currAttBlock], [0, 2, 1])
+        # G1 =  cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])@G@cp.transpose(sWv[currAttBlock], [0, 2, 1])
         # print(cp.shape(G1))
         # print(cp.shape(d_softmax))
         # print(cp.shape(E_postln_cache[currAttBlock, 0][:, None, :, :]))
         # print(cp.shape(sWk[currAttBlock]))
         # print(cp.shape(cp.transpose(sWq[currAttBlock], [0, 2, 1])))
 
-        G2 = (1/cp.sqrt(k_DKey))*d_softmax@(E_postln_cache[currAttBlock, 0][:, None, :, :]@sWk[currAttBlock])@cp.transpose(sWq[currAttBlock], [0, 2, 1])
+        G2 = (1/cp.sqrt(k_DKey))*d_softmax@(K_cache[currAttBlock])@cp.transpose(sWq[currAttBlock], [0, 2, 1])
 
 
-        G3 = (1/cp.sqrt(k_DKey))*cp.transpose(d_softmax, [0, 1, 3, 2])@E_postln_cache[currAttBlock, 0][:, None, :, :]@sWq[currAttBlock]@cp.transpose(sWk[currAttBlock], [0, 2, 1])
+        G3 = (1/cp.sqrt(k_DKey))*cp.transpose(d_softmax, [0, 1, 3, 2])@Q_cache[currAttBlock]@cp.transpose(sWk[currAttBlock], [0, 2, 1])
         # print(cp.shape(G1), " ", cp.shape(G2), " ", cp.shape(G3), " ")
 
         G_preatt = cp.sum(G1+G2+G3, axis=1)
@@ -274,8 +284,10 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         Xhat_mean = E_midln_cache[currAttBlock, 0]*(cp.mean((G*sLNGain[currAttBlock, 0])*E_midln_cache[currAttBlock, 0], axis = 2, keepdims=True))
         G= G_preln+(1/cp.sqrt(cp.var(E_preln_cache[currAttBlock, 0], axis = 2, keepdims = True)+0.00001))*(G*sLNGain[currAttBlock, 0]-cp.mean(G*sLNGain[currAttBlock, 0], axis = 2, keepdims=True)-Xhat_mean)
         currAttBlock-=1
+
     g_Wpos+=cp.sum(G, axis=0)
-    g_We += cp.sum(We_to_E.T@G, axis=0)
+    # print(cp.shape(We_to_E))
+    g_We += cp.sum(cp.transpose(We_to_E, [0, 2, 1])@G, axis=0)
     g_We[2] = cp.zeros(k_DModel)
 
 
@@ -290,7 +302,8 @@ g_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
 g_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
 g_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
 g_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-g_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
+g_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32)
+g_Wo = cp.zeros((k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32)
 g_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
 g_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
 g_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
@@ -304,7 +317,8 @@ admt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
 admt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
 admt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
 admt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype = cp.float32)
-admt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
+admt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32)
+admt_Wo = cp.zeros((k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32)
 admt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
 admt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
 admt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
@@ -319,7 +333,8 @@ advt_We = cp.zeros((k_VocabSize, k_DModel), dtype=cp.float32)
 advt_Wpos = cp.zeros((k_ContextLength, k_DModel), dtype=cp.float32)
 advt_Wq = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
 advt_Wk = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32)
-advt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel), dtype=cp.float32)
+advt_Wv = cp.zeros((k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32)
+advt_Wo = cp.zeros((k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32)
 advt_MLPW1 = cp.zeros((k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32)
 advt_MLPW2 = cp.zeros((k_AttBlocks, k_DModel*4, k_DModel), dtype=cp.float32)
 advt_MLPb1 = cp.zeros((k_AttBlocks, 1, k_DModel*4), dtype=cp.float32)
@@ -455,11 +470,11 @@ with open('results.txt', 'w', encoding="utf-8") as f:
 
                 if(amnt%k_BatchSize == 0):   
 
-                    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(input_batch, svocabDict)
+                    E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache = fowardprop(input_batch, svocabDict)
                     # prediction = decode(E, vocab_list)
                     # print(prediction)
                     loss, onehot_cache = findLoss(E, input_batch, svocabDict)
-                    backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E)
+                    backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache)
                     input_batch = []
                     loss = cp.array(loss)
                     t+=1
@@ -476,6 +491,7 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                     g_Wv/=k_BatchSize
                     g_Wq/=k_BatchSize
                     g_Wk/=k_BatchSize
+                    g_Wo/=k_BatchSize
                     g_Wpos/=k_BatchSize
                     g_We/=k_BatchSize
 
@@ -484,6 +500,7 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                     admt_Wq = k_Beta1*admt_Wq + (1-k_Beta1)*g_Wq
                     admt_Wk = k_Beta1*admt_Wk + (1-k_Beta1)*g_Wk
                     admt_Wv = k_Beta1*admt_Wv + (1-k_Beta1)*g_Wv
+                    admt_Wo = k_Beta1*admt_Wo + (1-k_Beta1)*g_Wo
                     admt_MLPW1 = k_Beta1*admt_MLPW1 + (1-k_Beta1)*g_MLPW1
                     admt_MLPW2 = k_Beta1*admt_MLPW2 + (1-k_Beta1)*g_MLPW2
                     admt_MLPb1 = k_Beta1*admt_MLPb1 + (1-k_Beta1)*g_MLPb1
@@ -499,6 +516,7 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                     advt_Wq = k_Beta2*advt_Wq + (1-k_Beta2)*cp.square(g_Wq)
                     advt_Wk = k_Beta2*advt_Wk + (1-k_Beta2)*cp.square(g_Wk)
                     advt_Wv = k_Beta2*advt_Wv + (1-k_Beta2)*cp.square(g_Wv)
+                    advt_Wo = k_Beta2*advt_Wo + (1-k_Beta2)*cp.square(g_Wo)
                     advt_MLPW1 = k_Beta2*advt_MLPW1 + (1-k_Beta2)*cp.square(g_MLPW1)
                     advt_MLPW2 = k_Beta2*advt_MLPW2 + (1-k_Beta2)*cp.square(g_MLPW2)
                     advt_MLPb1 = k_Beta2*advt_MLPb1 + (1-k_Beta2)*cp.square(g_MLPb1)
@@ -513,6 +531,7 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                     sWq -= k_Alpha*(((admt_Wq/(1-k_Beta1**t))/(cp.sqrt(advt_Wq/(1-k_Beta2**t))+k_Epsilon))+sWq*k_Lambda)
                     sWk -= k_Alpha*(((admt_Wk/(1-k_Beta1**t))/(cp.sqrt(advt_Wk/(1-k_Beta2**t))+k_Epsilon))+sWk*k_Lambda)
                     sWv -= k_Alpha*(((admt_Wv/(1-k_Beta1**t))/(cp.sqrt(advt_Wv/(1-k_Beta2**t))+k_Epsilon))+sWv*k_Lambda)
+                    sWo -= k_Alpha*(((admt_Wo/(1-k_Beta1**t))/(cp.sqrt(advt_Wo/(1-k_Beta2**t))+k_Epsilon))+sWo*k_Lambda)
                     sMLPW1 -= k_Alpha*(((admt_MLPW1/(1-k_Beta1**t))/(cp.sqrt(advt_MLPW1/(1-k_Beta2**t))+k_Epsilon))+sMLPW1*k_Lambda)
                     sMLPW2-= k_Alpha*(((admt_MLPW2/(1-k_Beta1**t))/(cp.sqrt(advt_MLPW2/(1-k_Beta2**t))+k_Epsilon))+sMLPW2*k_Lambda)
                     sMLPb1 -= k_Alpha*(((admt_MLPb1/(1-k_Beta1**t))/(cp.sqrt(advt_MLPb1/(1-k_Beta2**t))+k_Epsilon))+sMLPb1*k_Lambda)
@@ -521,19 +540,20 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                     sLNBias-= k_Alpha*(((admt_LNBias/(1-k_Beta1**t))/(cp.sqrt(advt_LNBias/(1-k_Beta2**t))+k_Epsilon))+sLNBias*k_Lambda)
                     sLW -= k_Alpha*(((admt_LW/(1-k_Beta1**t))/(cp.sqrt(advt_LW/(1-k_Beta2**t))+k_Epsilon))+sLW*k_Lambda)
                     sLB -= k_Alpha*(((admt_LB/(1-k_Beta1**t))/(cp.sqrt(advt_LB/(1-k_Beta2**t))+k_Epsilon))+sLB*k_Lambda)
-                    g_We*=0
-                    g_Wpos*=0.
-                    g_Wq*=0.
-                    g_Wk*=0.
-                    g_Wv*=0.
-                    g_MLPW1*=0.
-                    g_MLPW2*=0.
-                    g_MLPb1*=0.
-                    g_MLPb2*=0.
-                    g_LNGain*=0.
-                    g_LNBias*=0.
-                    g_LW*=0.
-                    g_LB*=0.
+                    g_We.fill(0)
+                    g_Wpos.fill(0)
+                    g_Wq.fill(0)
+                    g_Wk.fill(0)
+                    g_Wv.fill(0)
+                    g_Wo.fill(0)
+                    g_MLPW1.fill(0)
+                    g_MLPW2.fill(0)
+                    g_MLPb1.fill(0)
+                    g_MLPb2.fill(0)
+                    g_LNGain.fill(0)
+                    g_LNBias.fill(0)
+                    g_LW.fill(0)
+                    g_LB.fill(0)
                 search_et = time.perf_counter()
                 # print(f"loop took {search_et-search_st:.4f} seconds.")
 
@@ -549,7 +569,7 @@ while(True):
     k = len(q)
     print(q) 
     while k < k_ContextLength:
-        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E = fowardprop(q, svocabDict)
+        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, temp1, temp2, temp3= fowardprop(q, svocabDict)
         prediction = decode(E[0], vocab_list)
         # loss, onehot_cache = findLoss(E, q, svocabDict)
         # print(loss)

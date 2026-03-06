@@ -209,7 +209,6 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         while(currAttHead<k_Attheads):
             g_Wv[currAttBlock, currAttHead]+=E_postln_cache[currAttBlock, 0].T@(E_soft_cache[currAttBlock, currAttHead].T@G)
             V = E_postln_cache[currAttBlock, 0]@sWv[currAttBlock, currAttHead]
-
             print(np.shape(V))
             print(np.shape(G))
             
