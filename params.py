@@ -12,6 +12,6 @@ k_BatchSize = 32
 k_Alpha = 0.0003
 k_Beta1 = 0.9
 k_Beta2 = 0.999
-k_Epsilon = 0.0001
+k_Epsilon = 0.0002
 k_Lambda = 0.01
 

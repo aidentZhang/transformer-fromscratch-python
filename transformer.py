@@ -25,10 +25,10 @@ sWe[2] = cp.zeros(k_DModel, dtype=cp.float32)
 sWpos = cp.random.normal(loc=0, scale=0.02, size=(k_ContextLength, k_DModel), dtype=cp.float32).astype(cp.float32)
 
 # Scaling operations can happen before or after the cast; leaving them after is fine.
-sWq = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWk = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32).astype(cp.float32) / cp.sqrt(k_Attheads)
-sWo = cp.random.normal(loc=0, scale=cp.sqrt(1/(k_DModel+k_Attheads*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32) / cp.sqrt(k_Attheads)
+sWq = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) 
+sWk = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+k_DKey)), size=(k_AttBlocks, k_Attheads, k_DModel, k_DKey), dtype=cp.float32).astype(cp.float32) 
+sWv = cp.random.normal(loc=0, scale=cp.sqrt(1/k_DModel), size=(k_AttBlocks, k_Attheads, k_DModel, k_DModel//k_Attheads), dtype=cp.float32).astype(cp.float32) 
+sWo = cp.random.normal(loc=0, scale=cp.sqrt(1/(k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel), dtype=cp.float32) / cp.sqrt(k_Attheads)
 
 sMLPW1 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, k_DModel, k_DModel*4), dtype=cp.float32).astype(cp.float32)
 sMLPW2 = cp.random.normal(loc=0, scale=cp.sqrt(2/(k_DModel+4*k_DModel)), size=(k_AttBlocks, 4*k_DModel, k_DModel), dtype=cp.float32).astype(cp.float32)
@@ -59,14 +59,19 @@ sSoftmaxMask = cp.nan_to_num(-cp.inf * cp.triu(cp.ones((k_ContextLength, k_Conte
 # E = [[1, 2]]   
 #------------------
 #TRANSFORMER FUNCTIONS
+
+cp.cuda.set_allocator(cp.cuda.MemoryPool().malloc)
+
+
 def layerNorm(E, attLayer, prePostMLP):
-    temp = cp.nan_to_num((E-cp.mean(E, axis = -1, keepdims = True))/cp.sqrt((cp.nan_to_num(cp.var(E, axis = -1, keepdims = True), nan = 0.)+0.00001)))
+    temp = (E-cp.mean(E, axis = -1, keepdims = True))/cp.sqrt((cp.nan_to_num(cp.var(E, axis = -1, keepdims = True), nan = 0.)+0.00001))
     return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
 
-def softmax(E):
-    return cp.nan_to_num(cp.exp(E)/(cp.exp(E)@cp.ones((E.shape[2],1))), nan = 0)
 
-# def softbatch(E):
+def softmax(E):
+    exp_ = cp.exp(E-cp.max(E, axis=-1, keepdims=True))
+    return cp.nan_to_num(exp_/(cp.sum(exp_, axis=-1, keepdims=True)))
+
 
 def relu(E):
     return cp.maximum(0, E)
@@ -164,9 +169,9 @@ def fowardprop(input_llm, svocabDict):
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = cp.array(E_ln)
 
-        Q=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
-        K=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
-        V=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
+        Q=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        K=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        V=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
         Q_cache[currAttBlock]=Q
         K_cache[currAttBlock]=K
         V_cache[currAttBlock]=V
@@ -206,8 +211,8 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
     global g_LB
 
 
-    g_LW+=cp.sum(cp.transpose(E_lin_cache, [0, 2, 1])@(E-onehot_cache), axis=0)
-    g_LB+=cp.sum(cp.sum((E-onehot_cache), axis=1), axis=0)
+    g_LW+=cp.sum(cp.transpose(E_lin_cache, [0, 2, 1])@(E-onehot_cache), axis=0)/ k_ContextLength
+    g_LB+=cp.sum(cp.sum((E-onehot_cache), axis=1), axis=0)/ k_ContextLength
     
     G = (E-onehot_cache)@sLW.T/k_ContextLength
     currAttBlock = k_AttBlocks-1
@@ -251,11 +256,11 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
 
  
-        g_Wq += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@d_softmax@K_cache[currAttBlock], axis=0)
+        g_Wq[currAttBlock] += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@d_softmax@K_cache[currAttBlock], axis=0)
        
        
 
-        g_Wk += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(d_softmax, [0, 1, 3, 2])@Q_cache[currAttBlock], axis=0)
+        g_Wk[currAttBlock] += cp.sum((1/cp.sqrt(k_DKey))*cp.transpose(E_postln_cache[currAttBlock, 0], [0, 2, 1])[:, None, :, :]@cp.transpose(d_softmax, [0, 1, 3, 2])@Q_cache[currAttBlock], axis=0)
 
         # print(cp.shape(cp.transpose(E_soft_cache[currAttBlock], [0, 1, 3, 2])))
         # print(cp.shape(G))
@@ -437,12 +442,17 @@ ds = load_dataset(
 
 i = 0
 with open('results.txt', 'w', encoding="utf-8") as f:
-    with tqdm(total=3000) as pbar:
+    with tqdm(total=6000) as pbar:
         for text in ds['text']:
             amnt = 0
-            if i == 3000:
+            
+            if i == 6000:
                 break
             i+=1
+
+            if(i%1500==0):
+                cp.savez(f"./Weights/weights{i}.npz", sWe=sWe, sWpos=sWpos, sWq=sWq, sWk=sWk, sWv=sWv, sMLPW1=sMLPW1, sMLPW2=sMLPW2, sMLPb1=sMLPb1, sMLPb2=sMLPb2, sLNGain=sLNGain, sLNBias=sLNBias, sLW=sLW, sLB=sLB, sWo = sWo)
+
             # print("tokenizing!")
             search_st = time.perf_counter()
 
@@ -560,7 +570,12 @@ with open('results.txt', 'w', encoding="utf-8") as f:
 
 
 
-cp.savez("./Weights/weights.npz", sWe=sWe, sWpos=sWpos, sWq=sWq, sWk=sWk, sWv=sWv, sMLPW1=sMLPW1, sMLPW2=sMLPW2, sMLPb1=sMLPb1, sMLPb2=sMLPb2, sLNGain=sLNGain, sLNBias=sLNBias, sLW=sLW, sLB=sLB)
+cp.savez("./Weights/weights.npz", sWe=sWe, sWpos=sWpos, sWq=sWq, sWk=sWk, sWv=sWv, sMLPW1=sMLPW1, sMLPW2=sMLPW2, sMLPb1=sMLPb1, sMLPb2=sMLPb2, sLNGain=sLNGain, sLNBias=sLNBias, sLW=sLW, sLB=sLB, sWo = sWo)
+
+import string
+def is_hex(s):
+    return all(c in string.hexdigits for c in s)
+
 
 k_BatchSize=1
 while(True):
@@ -574,8 +589,16 @@ while(True):
         # loss, onehot_cache = findLoss(E, q, svocabDict)
         # print(loss)
         # print(prediction)
+        text = prediction[k].split("</w>")
         q.append(prediction[k])
-        print(prediction[k], end='')
+        post_processed = [
+            bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
+            for word in text
+        ]
+
+        final_text = " ".join(post_processed)
+
+        print(final_text, end='')
         k+=1
     print("")
     # print(q)
