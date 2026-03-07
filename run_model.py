@@ -2,7 +2,7 @@ import cupy as cp
 
 import params
 
-weights = cp.load("./Weights/weights1500.npz")
+weights = cp.load("./Weights/weights.npz")
 
 
 
@@ -201,19 +201,23 @@ def fowardprop(input_llm, svocabDict):
     
     E_lin_cache = cp.array(E)
     E=E@sLW+sLB
-    E=softmax(E/0.8)
+    E=softmax(E/1.5)
 
     return E
 
 #---------------------------------
 #Data processing functions
+import re
+BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
+
 def embed(svocabDict, case):
     embeded=[]
 
-    words = case.split()
+    words = re.findall(r"\w+|[^\w\s]|\n", case)
+
 
     processed_text = [
-        [hex(ord(char))[2:] for char in word] + ["</w>"] 
+        [BYTE_LOOKUP[b] for b in word.encode("utf-8")] + ["</w>"]
         for word in words
     ]
     case=processed_text
@@ -264,9 +268,7 @@ import string
 def is_hex(s):
     return all(c in string.hexdigits for c in s)
 
-import string
-def is_hex(s):
-    return all(c in string.hexdigits for c in s)
+
 
 
 k_BatchSize=1
@@ -296,7 +298,7 @@ k_BatchSize=1
 #     print("")
 #     # print(q)
 #     # print(q)
-
+print(embed(svocabDict, '\n'))
 
 while(True):
     q = input("input_llm part of a word, a char, or something: ")
@@ -315,13 +317,14 @@ while(True):
         text = prediction[k].split("</w>")
 
         post_processed = [
-            bytes.fromhex(word).decode("utf-8", errors="replace") if is_hex(word) else word
+            bytes.fromhex(word).decode("utf-8", errors="ignore") if is_hex(word) else word
             for word in text
         ]
 
+
         final_text = " ".join(post_processed)
 
-        print(final_text, end='')
+        print(final_text, end='', flush=True)
         k+=1
 
     print("")

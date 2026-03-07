@@ -37,7 +37,7 @@ with tqdm(total=1000000) as pbar:
         if i > 1000000: break
 
         raw_chunks = re.findall(r"\w+|[^\w\s]|\n", file['text'])
-
+        print(raw_chunks)
         for chunk in raw_chunks:
             byte_data = chunk.encode("utf-8")
             byte_tokens = [BYTE_LOOKUP[b] for b in byte_data]

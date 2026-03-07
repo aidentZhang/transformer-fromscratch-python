@@ -349,13 +349,15 @@ advt_LB = cp.zeros((k_VocabSize), dtype=cp.float32)
 
 #---------------------------------
 #Data processing functions
+import re
 def embed(svocabDict, case):
     embeded=[]
 
-    words = case.split()
+    words = re.findall(r"\w+|[^\w\s]|\n", case)
+
 
     processed_text = [
-        [hex(ord(char))[2:] for char in word] + ["</w>"] 
+        [BYTE_LOOKUP[b] for b in word.encode("utf-8")] + ["</w>"]
         for word in words
     ]
     case=processed_text
@@ -426,7 +428,10 @@ shift_factor = params.k_ShiftFactor
 t = 0
 avgloss = 0
 
+import string
 
+def is_hex(s):
+    return all(c in string.hexdigits for c in s)
 
 from datasets import load_dataset
 
@@ -437,6 +442,7 @@ ds = load_dataset(
     streaming=True
 )
 
+BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
 
 i = 0
 with open('results.txt', 'w', encoding="utf-8") as f:
@@ -455,6 +461,8 @@ with open('results.txt', 'w', encoding="utf-8") as f:
             search_st = time.perf_counter()
 
             text=embed(svocabDict, text)
+                
+
 
             search_et = time.perf_counter()
             # print(f"embedding took {search_et-search_st:.4f} seconds.")
@@ -472,12 +480,13 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                 word = text[curr_start:(curr_start+k_ContextLength-1)]
                 curr_start+=int(k_ContextLength/shift_factor)
                 if(len(word)<k_ContextLength):
+                    
                     amnt+=1
                     input_batch.append(word)
 
 
                 if(amnt%k_BatchSize == 0):   
-
+                    print("UPPP")
                     E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache = fowardprop(input_batch, svocabDict)
                     # prediction = decode(E, vocab_list)
                     # print(prediction)
@@ -588,15 +597,17 @@ while(True):
         # print(loss)
         # print(prediction)
         text = prediction[k].split("</w>")
+        # print(thing)
         q.append(prediction[k])
+
         post_processed = [
-            bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
+            bytes.fromhex(word).decode("utf-8", errors="ignore") if is_hex(word) else word
             for word in text
         ]
 
         final_text = " ".join(post_processed)
+        print(final_text, end="")
 
-        print(final_text, end='')
         k+=1
     print("")
     # print(q)
