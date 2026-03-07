@@ -1,6 +1,6 @@
 import cupy as cp
 
-import params
+from params import train_params
 
 weights = cp.load("./Weights/weights.npz")
 
@@ -242,7 +242,8 @@ def embed(svocabDict, case):
 #Data processing
 
 
-num_times = params.num_times
+
+
 
 
 svocabDict = {}
