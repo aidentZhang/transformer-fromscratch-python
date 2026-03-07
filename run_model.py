@@ -2,7 +2,7 @@ import cupy as cp
 
 import params
 
-weights = cp.load("./Weights/weights3000.npz")
+weights = cp.load("./Weights/weights1500.npz")
 
 
 
@@ -56,26 +56,57 @@ def relu(E):
 def relu_deriv(E):
     return cp.minimum(1, E)
 
-def decode(E, svocabList):
-    temp = cp.argmax(E, axis = -1)
+
+#GEMINI WROTE THIS:
+def decode(E, svocabList, top_k=5):
+    # E is shape (k_ContextLength, k_VocabSize) and already contains probabilities
+    temp = cp.zeros(E.shape[0], dtype=cp.int32)
+    
+    # We must sample row by row because cp.random.choice requires a 1D probability array
+    for row_idx in range(E.shape[0]):
+        row_probs = E[row_idx]
+        
+        # 1. Get the indices of the top K probabilities
+        top_k_indices = cp.argsort(row_probs)[-top_k:]
+        
+        # 2. Create a blank mask of zeros
+        masked_probs = cp.zeros_like(row_probs)
+        
+        # 3. Copy only the top K probabilities into the mask
+        masked_probs[top_k_indices] = row_probs[top_k_indices]
+        
+        # 4. Re-normalize the probabilities so they sum to 1.0
+        sum_probs = cp.sum(masked_probs)
+        if sum_probs > 0:
+            masked_probs = masked_probs / sum_probs
+        else:
+            # Fallback just in case of rounding errors
+            masked_probs[top_k_indices] = 1.0 / top_k 
+            
+        # 5. Sample the token based on the filtered probabilities (added size=1)[0]
+        temp[row_idx] = cp.random.choice(len(masked_probs), size=1, p=masked_probs)[0]
+
+    # 6. Map the sampled IDs back to your vocabulary strings
     answer = []
     for i in temp:
         i = int(i)
-        if(i > 3):
-            if i-4 >= len(svocabList):
+        if (i > 3):
+            if i - 4 >= len(svocabList):
                 answer.append("<NA>")
             else:
                 answer.append(svocabList[i-4])
-
-        elif (i==3):
+        elif (i == 3):
             answer.append(" ")
-        elif (i==1):
+        elif (i == 1):
             answer.append("<END>")
-        elif (i==2):
+        elif (i == 2):
             answer.append("<PAD>")
         else:
             answer.append("<STA>")
+            
     return answer
+
+
 #------------------------------------------------------------------------------------------------------------------------------FINISH
 def findLoss(E, input_llm, svocabDict):
     loss = 0
@@ -139,10 +170,9 @@ def fowardprop(input_llm, svocabDict):
             We_to_E[o, 2] = 1
             o+=1
 
-        E[i] = We_to_E@sWe
+        E[i] = We_to_E@sWe*cp.sqrt(k_DModel)
         We_to_E_cache[i]=We_to_E
-        for j in range(len(input_llm[i])+1):
-            E[i][j]+=sWpos[j]
+        E[i]+=sWpos
 
 
     currAttBlock = 0
@@ -151,9 +181,9 @@ def fowardprop(input_llm, svocabDict):
         E_ln, E_midln_cache[currAttBlock, 0] = layerNorm(E, currAttBlock, 0)
         E_postln_cache[currAttBlock, 0] = cp.array(E_ln)
 
-        Q=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
-        K=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
-        V=cp.transpose(cp.reshape(E@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
+        Q=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        K=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
+        V=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
         Q_cache[currAttBlock]=Q
         K_cache[currAttBlock]=K
         V_cache[currAttBlock]=V
@@ -171,10 +201,9 @@ def fowardprop(input_llm, svocabDict):
     
     E_lin_cache = cp.array(E)
     E=E@sLW+sLB
-    E=softmax(E)
+    E=softmax(E/0.8)
 
-    return E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E_cache, E_conc_cache, Q_cache, K_cache, V_cache
-
+    return E
 
 #---------------------------------
 #Data processing functions
@@ -276,7 +305,7 @@ while(True):
     print(q)
     while k < k_ContextLength:
         print("", end='')
-        E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, v, c, s, a = fowardprop(q, svocabDict)
+        E = fowardprop([q], svocabDict)
         prediction = decode(E[0], vocab_list)
         # loss, onehot_cache = findLoss(E, q, svocabDict)
         # print(loss)
@@ -286,7 +315,7 @@ while(True):
         text = prediction[k].split("</w>")
 
         post_processed = [
-            bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
+            bytes.fromhex(word).decode("utf-8", errors="replace") if is_hex(word) else word
             for word in text
         ]
 

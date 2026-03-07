@@ -157,10 +157,9 @@ def fowardprop(input_llm, svocabDict):
             We_to_E[o, 2] = 1
             o+=1
 
-        E[i] = We_to_E@sWe
+        E[i] = We_to_E@sWe*cp.sqrt(k_DModel)
         We_to_E_cache[i]=We_to_E
-        for j in range(len(input_llm[i])+1):
-            E[i][j]+=sWpos[j]
+        E[i]+=sWpos
 
 
     currAttBlock = 0
@@ -279,9 +278,8 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
         G3 = (1/cp.sqrt(k_DKey))*cp.transpose(d_softmax, [0, 1, 3, 2])@Q_cache[currAttBlock]@cp.transpose(sWk[currAttBlock], [0, 2, 1])
         # print(cp.shape(G1), " ", cp.shape(G2), " ", cp.shape(G3), " ")
 
-        G_preatt = cp.sum(G1+G2+G3, axis=1)
+        G = cp.sum(G1+G2+G3, axis=1)
         # print(cp.shape(G_preatt))
-        G=cp.array(G_preatt)
 
         g_LNBias[currAttBlock, 0] += cp.sum(cp.sum(G, axis = 1), axis=0)
         g_LNGain[currAttBlock, 0] += cp.sum(cp.sum((E_midln_cache[currAttBlock, 0])*G, axis = 1), axis=0)
@@ -292,7 +290,7 @@ def backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_c
 
     g_Wpos+=cp.sum(G, axis=0)
     # print(cp.shape(We_to_E))
-    g_We += cp.sum(cp.transpose(We_to_E, [0, 2, 1])@G, axis=0)
+    g_We += cp.sum(cp.transpose(We_to_E, [0, 2, 1])@G, axis=0)*cp.sqrt(k_DModel)
     g_We[2] = cp.zeros(k_DModel)
 
 
@@ -450,7 +448,7 @@ with open('results.txt', 'w', encoding="utf-8") as f:
                 break
             i+=1
 
-            if(i%1500==0):
+            if(i%100==0):
                 cp.savez(f"./Weights/weights{i}.npz", sWe=sWe, sWpos=sWpos, sWq=sWq, sWk=sWk, sWv=sWv, sMLPW1=sMLPW1, sMLPW2=sMLPW2, sMLPb1=sMLPb1, sMLPb2=sMLPb2, sLNGain=sLNGain, sLNBias=sLNBias, sLW=sLW, sLB=sLB, sWo = sWo)
 
             # print("tokenizing!")
