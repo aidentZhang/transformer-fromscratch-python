@@ -7,6 +7,7 @@ import time
 import itertools
 import string
 from datasets import load_dataset
+import re
 
 cp.cuda.set_allocator(cp.cuda.MemoryPool().malloc)
 
@@ -138,7 +139,7 @@ class transformer:
         return answer
     #------------------------------------------------------------------------------------------------------------------------------FINISH
     def findLoss(self, E, input_llm, svocabDict):
-        k_BatchSize=self.k_BatchSize
+        k_BatchSize=len(input_llm)
         k_ContextLength= self.k_ContextLength
         k_VocabSize=self.k_VocabSize
         loss = []
@@ -232,7 +233,6 @@ class transformer:
             while(o<k_ContextLength):
                 We_to_E[o, 2] = 1
                 o+=1
-
             E[i] = We_to_E@sWe*cp.sqrt(k_DModel)
             We_to_E_cache[i]=We_to_E
             E[i]+=sWpos
@@ -285,7 +285,7 @@ class transformer:
         num_times = self.num_times
         k_DKey = self.k_DKey
         k_ShiftFactor = self.k_ShiftFactor
-        k_BatchSize = self.k_BatchSize
+        k_BatchSize = len(E)
         k_Alpha = self.k_Alpha
         k_Beta1 = self.k_Beta1
         k_Beta2 = self.k_Beta2
@@ -406,13 +406,14 @@ class transformer:
 
     #---------------------------------
     #Data processing functions
-    def embed(self, svocabDict, case):
+    def embed(self, svocabDict, case, BYTE_LOOKUP):
         embeded=[]
 
-        words = case.split()
+        words = re.findall(r"\w+|[^\w\s]|\n", case)
+
 
         processed_text = [
-            [hex(ord(char))[2:] for char in word] + ["</w>"] 
+            [BYTE_LOOKUP[b] for b in word.encode("utf-8")] + ["</w>"]
             for word in words
         ]
         case=processed_text
@@ -499,6 +500,8 @@ class transformer:
         fowardprop = self.fowardprop
         i = 0
         t=0
+        token_stream=[]
+        BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
         with open('results.txt', 'w', encoding="utf-8") as f:
             with tqdm(total=num_steps) as pbar:
                 for text in ds['text']:
@@ -518,116 +521,117 @@ class transformer:
                     # print("tokenizing!")
                     search_st = time.perf_counter()
 
-                    text=embed(svocabDict, text)
-
+                    token_stream+= embed(svocabDict, text, BYTE_LOOKUP)+["<EOS>"]
                     search_et = time.perf_counter()
                     # print(f"embedding took {search_et-search_st:.4f} seconds.")
 
                     # print(text)
                     pbar.update(1)
 
-                    curr_start =   k_ContextLength-1
-                    input_batch = []
+
+                    if(i%10==0):
+                        curr_start =   k_ContextLength-1
+                        input_batch = []
+                        text=token_stream
+
+                        while(curr_start<=len(text)-k_ContextLength):
+                            search_st = time.perf_counter()
+
+                            word = text[curr_start:(curr_start+k_ContextLength-1)]
+                            curr_start+=int(k_ContextLength/shift_factor)
+                            if(len(word)<k_ContextLength):
+                                amnt+=1
+                                input_batch.append(word)
 
 
-                    while(curr_start<len(text)-k_ContextLength):
-                        search_st = time.perf_counter()
+                            if(amnt%k_BatchSize == 0 or curr_start+2*int(k_ContextLength/shift_factor) > len(text)):   
+                                E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache = fowardprop(input_batch, svocabDict, len(input_batch))
+                                # prediction = decode(E, vocab_list)
+                                # print(prediction)
+                                loss, onehot_cache = findLoss(E, input_batch, svocabDict)
+                                backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache)
+                                input_batch = []
+                                loss = cp.array(loss)
+                                t+=1
+                                f.write(f"{cp.mean(loss)}\n")
+                                avgloss=0
+                                g_LB/=len(input_batch)
+                                g_LW/=len(input_batch)
+                                g_MLPb2/=len(input_batch)
+                                g_MLPW2/=len(input_batch)
+                                g_MLPb1/=len(input_batch)
+                                g_MLPW1/=len(input_batch)
+                                g_LNBias/=len(input_batch)
+                                g_LNGain/=len(input_batch)
+                                g_Wv/=len(input_batch)
+                                g_Wq/=len(input_batch)
+                                g_Wk/=len(input_batch)
+                                g_Wo/=len(input_batch)
+                                g_Wpos/=len(input_batch)
+                                g_We/=len(input_batch)
 
-                        word = text[curr_start:(curr_start+k_ContextLength-1)]
-                        curr_start+=int(k_ContextLength/shift_factor)
-                        if(len(word)<k_ContextLength):
-                            amnt+=1
-                            input_batch.append(word)
-
-
-                        if(amnt%k_BatchSize == 0):   
-
-                            E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache = fowardprop(input_batch, svocabDict, k_BatchSize)
-                            # prediction = decode(E, vocab_list)
-                            # print(prediction)
-                            loss, onehot_cache = findLoss(E, input_batch, svocabDict)
-                            backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache)
-                            input_batch = []
-                            loss = cp.array(loss)
-                            t+=1
-                            f.write(f"{cp.mean(loss)}\n")
-                            avgloss=0
-                            g_LB/=k_BatchSize
-                            g_LW/=k_BatchSize
-                            g_MLPb2/=k_BatchSize
-                            g_MLPW2/=k_BatchSize
-                            g_MLPb1/=k_BatchSize
-                            g_MLPW1/=k_BatchSize
-                            g_LNBias/=k_BatchSize
-                            g_LNGain/=k_BatchSize
-                            g_Wv/=k_BatchSize
-                            g_Wq/=k_BatchSize
-                            g_Wk/=k_BatchSize
-                            g_Wo/=k_BatchSize
-                            g_Wpos/=k_BatchSize
-                            g_We/=k_BatchSize
-
-                            self.admt_We = k_Beta1*self.admt_We + (1-k_Beta1)*g_We
-                            self.admt_Wpos = k_Beta1*self.admt_Wpos + (1-k_Beta1)*g_Wpos
-                            self.admt_Wq = k_Beta1*self.admt_Wq + (1-k_Beta1)*g_Wq
-                            self.admt_Wk = k_Beta1*self.admt_Wk + (1-k_Beta1)*g_Wk
-                            self.admt_Wv = k_Beta1*self.admt_Wv + (1-k_Beta1)*g_Wv
-                            self.admt_Wo = k_Beta1*self.admt_Wo + (1-k_Beta1)*g_Wo
-                            self.admt_MLPW1 = k_Beta1*self.admt_MLPW1 + (1-k_Beta1)*g_MLPW1
-                            self.admt_MLPW2 = k_Beta1*self.admt_MLPW2 + (1-k_Beta1)*g_MLPW2
-                            self.admt_MLPb1 = k_Beta1*self.admt_MLPb1 + (1-k_Beta1)*g_MLPb1
-                            self.admt_MLPb2 = k_Beta1*self.admt_MLPb2 + (1-k_Beta1)*g_MLPb2
-                            self.admt_LNGain = k_Beta1*self.admt_LNGain + (1-k_Beta1)*g_LNGain
-                            self.admt_LNBias = k_Beta1*self.admt_LNBias + (1-k_Beta1)*g_LNBias
-                            self.admt_LW = k_Beta1*self.admt_LW + (1-k_Beta1)*g_LW
-                            self.admt_LB = k_Beta1*self.admt_LB + (1-k_Beta1)*g_LB
+                                self.admt_We = k_Beta1*self.admt_We + (1-k_Beta1)*g_We
+                                self.admt_Wpos = k_Beta1*self.admt_Wpos + (1-k_Beta1)*g_Wpos
+                                self.admt_Wq = k_Beta1*self.admt_Wq + (1-k_Beta1)*g_Wq
+                                self.admt_Wk = k_Beta1*self.admt_Wk + (1-k_Beta1)*g_Wk
+                                self.admt_Wv = k_Beta1*self.admt_Wv + (1-k_Beta1)*g_Wv
+                                self.admt_Wo = k_Beta1*self.admt_Wo + (1-k_Beta1)*g_Wo
+                                self.admt_MLPW1 = k_Beta1*self.admt_MLPW1 + (1-k_Beta1)*g_MLPW1
+                                self.admt_MLPW2 = k_Beta1*self.admt_MLPW2 + (1-k_Beta1)*g_MLPW2
+                                self.admt_MLPb1 = k_Beta1*self.admt_MLPb1 + (1-k_Beta1)*g_MLPb1
+                                self.admt_MLPb2 = k_Beta1*self.admt_MLPb2 + (1-k_Beta1)*g_MLPb2
+                                self.admt_LNGain = k_Beta1*self.admt_LNGain + (1-k_Beta1)*g_LNGain
+                                self.admt_LNBias = k_Beta1*self.admt_LNBias + (1-k_Beta1)*g_LNBias
+                                self.admt_LW = k_Beta1*self.admt_LW + (1-k_Beta1)*g_LW
+                                self.admt_LB = k_Beta1*self.admt_LB + (1-k_Beta1)*g_LB
 
 
-                            self.advt_We = k_Beta2*self.advt_We + (1-k_Beta2)*cp.square(g_We)
-                            self.advt_Wpos = k_Beta2*self.advt_Wpos + (1-k_Beta2)*cp.square(g_Wpos)
-                            self.advt_Wq = k_Beta2*self.advt_Wq + (1-k_Beta2)*cp.square(g_Wq)
-                            self.advt_Wk = k_Beta2*self.advt_Wk + (1-k_Beta2)*cp.square(g_Wk)
-                            self.advt_Wv = k_Beta2*self.advt_Wv + (1-k_Beta2)*cp.square(g_Wv)
-                            self.advt_Wo = k_Beta2*self.advt_Wo + (1-k_Beta2)*cp.square(g_Wo)
-                            self.advt_MLPW1 = k_Beta2*self.advt_MLPW1 + (1-k_Beta2)*cp.square(g_MLPW1)
-                            self.advt_MLPW2 = k_Beta2*self.advt_MLPW2 + (1-k_Beta2)*cp.square(g_MLPW2)
-                            self.advt_MLPb1 = k_Beta2*self.advt_MLPb1 + (1-k_Beta2)*cp.square(g_MLPb1)
-                            self.advt_MLPb2 = k_Beta2*self.advt_MLPb2 + (1-k_Beta2)*cp.square(g_MLPb2)
-                            self.advt_LNGain = k_Beta2*self.advt_LNGain + (1-k_Beta2)*cp.square(g_LNGain)
-                            self.advt_LNBias = k_Beta2*self.advt_LNBias + (1-k_Beta2)*cp.square(g_LNBias)
-                            self.advt_LW = k_Beta2*self.advt_LW + (1-k_Beta2)*cp.square(g_LW)
-                            self.advt_LB = k_Beta2*self.advt_LB + (1-k_Beta2)*cp.square(g_LB)
+                                self.advt_We = k_Beta2*self.advt_We + (1-k_Beta2)*cp.square(g_We)
+                                self.advt_Wpos = k_Beta2*self.advt_Wpos + (1-k_Beta2)*cp.square(g_Wpos)
+                                self.advt_Wq = k_Beta2*self.advt_Wq + (1-k_Beta2)*cp.square(g_Wq)
+                                self.advt_Wk = k_Beta2*self.advt_Wk + (1-k_Beta2)*cp.square(g_Wk)
+                                self.advt_Wv = k_Beta2*self.advt_Wv + (1-k_Beta2)*cp.square(g_Wv)
+                                self.advt_Wo = k_Beta2*self.advt_Wo + (1-k_Beta2)*cp.square(g_Wo)
+                                self.advt_MLPW1 = k_Beta2*self.advt_MLPW1 + (1-k_Beta2)*cp.square(g_MLPW1)
+                                self.advt_MLPW2 = k_Beta2*self.advt_MLPW2 + (1-k_Beta2)*cp.square(g_MLPW2)
+                                self.advt_MLPb1 = k_Beta2*self.advt_MLPb1 + (1-k_Beta2)*cp.square(g_MLPb1)
+                                self.advt_MLPb2 = k_Beta2*self.advt_MLPb2 + (1-k_Beta2)*cp.square(g_MLPb2)
+                                self.advt_LNGain = k_Beta2*self.advt_LNGain + (1-k_Beta2)*cp.square(g_LNGain)
+                                self.advt_LNBias = k_Beta2*self.advt_LNBias + (1-k_Beta2)*cp.square(g_LNBias)
+                                self.advt_LW = k_Beta2*self.advt_LW + (1-k_Beta2)*cp.square(g_LW)
+                                self.advt_LB = k_Beta2*self.advt_LB + (1-k_Beta2)*cp.square(g_LB)
 
-                            sWe -= k_Alpha*(((self.admt_We/(1-k_Beta1**t))/(cp.sqrt(self.advt_We/(1-k_Beta2**t))+k_Epsilon))+sWe*k_Lambda)
-                            sWpos -= k_Alpha*(((self.admt_Wpos/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wpos/(1-k_Beta2**t))+k_Epsilon))+sWpos*k_Lambda)
-                            sWq -= k_Alpha*(((self.admt_Wq/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wq/(1-k_Beta2**t))+k_Epsilon))+sWq*k_Lambda)
-                            sWk -= k_Alpha*(((self.admt_Wk/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wk/(1-k_Beta2**t))+k_Epsilon))+sWk*k_Lambda)
-                            sWv -= k_Alpha*(((self.admt_Wv/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wv/(1-k_Beta2**t))+k_Epsilon))+sWv*k_Lambda)
-                            sWo -= k_Alpha*(((self.admt_Wo/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wo/(1-k_Beta2**t))+k_Epsilon))+sWo*k_Lambda)
-                            sMLPW1 -= k_Alpha*(((self.admt_MLPW1/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPW1/(1-k_Beta2**t))+k_Epsilon))+sMLPW1*k_Lambda)
-                            sMLPW2-= k_Alpha*(((self.admt_MLPW2/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPW2/(1-k_Beta2**t))+k_Epsilon))+sMLPW2*k_Lambda)
-                            sMLPb1 -= k_Alpha*(((self.admt_MLPb1/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPb1/(1-k_Beta2**t))+k_Epsilon))+sMLPb1*k_Lambda)
-                            sMLPb2 -= k_Alpha*(((self.admt_MLPb2/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPb2/(1-k_Beta2**t))+k_Epsilon))+sMLPb2*k_Lambda)
-                            sLNGain -= k_Alpha*(((self.admt_LNGain/(1-k_Beta1**t))/(cp.sqrt(self.advt_LNGain/(1-k_Beta2**t))+k_Epsilon))+sLNGain*k_Lambda)
-                            sLNBias-= k_Alpha*(((self.admt_LNBias/(1-k_Beta1**t))/(cp.sqrt(self.advt_LNBias/(1-k_Beta2**t))+k_Epsilon))+sLNBias*k_Lambda)
-                            sLW -= k_Alpha*(((self.admt_LW/(1-k_Beta1**t))/(cp.sqrt(self.advt_LW/(1-k_Beta2**t))+k_Epsilon))+sLW*k_Lambda)
-                            sLB -= k_Alpha*(((self.admt_LB/(1-k_Beta1**t))/(cp.sqrt(self.advt_LB/(1-k_Beta2**t))+k_Epsilon))+sLB*k_Lambda)
-                            g_We.fill(0)
-                            g_Wpos.fill(0)
-                            g_Wq.fill(0)
-                            g_Wk.fill(0)
-                            g_Wv.fill(0)
-                            g_Wo.fill(0)
-                            g_MLPW1.fill(0)
-                            g_MLPW2.fill(0)
-                            g_MLPb1.fill(0)
-                            g_MLPb2.fill(0)
-                            g_LNGain.fill(0)
-                            g_LNBias.fill(0)
-                            g_LW.fill(0)
-                            g_LB.fill(0)
-                        search_et = time.perf_counter()
-                        # print(f"loop took {search_et-search_st:.4f} seconds.")
+                                sWe -= k_Alpha*(((self.admt_We/(1-k_Beta1**t))/(cp.sqrt(self.advt_We/(1-k_Beta2**t))+k_Epsilon))+sWe*k_Lambda)
+                                sWpos -= k_Alpha*(((self.admt_Wpos/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wpos/(1-k_Beta2**t))+k_Epsilon))+sWpos*k_Lambda)
+                                sWq -= k_Alpha*(((self.admt_Wq/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wq/(1-k_Beta2**t))+k_Epsilon))+sWq*k_Lambda)
+                                sWk -= k_Alpha*(((self.admt_Wk/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wk/(1-k_Beta2**t))+k_Epsilon))+sWk*k_Lambda)
+                                sWv -= k_Alpha*(((self.admt_Wv/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wv/(1-k_Beta2**t))+k_Epsilon))+sWv*k_Lambda)
+                                sWo -= k_Alpha*(((self.admt_Wo/(1-k_Beta1**t))/(cp.sqrt(self.advt_Wo/(1-k_Beta2**t))+k_Epsilon))+sWo*k_Lambda)
+                                sMLPW1 -= k_Alpha*(((self.admt_MLPW1/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPW1/(1-k_Beta2**t))+k_Epsilon))+sMLPW1*k_Lambda)
+                                sMLPW2-= k_Alpha*(((self.admt_MLPW2/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPW2/(1-k_Beta2**t))+k_Epsilon))+sMLPW2*k_Lambda)
+                                sMLPb1 -= k_Alpha*(((self.admt_MLPb1/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPb1/(1-k_Beta2**t))+k_Epsilon))+sMLPb1*k_Lambda)
+                                sMLPb2 -= k_Alpha*(((self.admt_MLPb2/(1-k_Beta1**t))/(cp.sqrt(self.advt_MLPb2/(1-k_Beta2**t))+k_Epsilon))+sMLPb2*k_Lambda)
+                                sLNGain -= k_Alpha*(((self.admt_LNGain/(1-k_Beta1**t))/(cp.sqrt(self.advt_LNGain/(1-k_Beta2**t))+k_Epsilon))+sLNGain*k_Lambda)
+                                sLNBias-= k_Alpha*(((self.admt_LNBias/(1-k_Beta1**t))/(cp.sqrt(self.advt_LNBias/(1-k_Beta2**t))+k_Epsilon))+sLNBias*k_Lambda)
+                                sLW -= k_Alpha*(((self.admt_LW/(1-k_Beta1**t))/(cp.sqrt(self.advt_LW/(1-k_Beta2**t))+k_Epsilon))+sLW*k_Lambda)
+                                sLB -= k_Alpha*(((self.admt_LB/(1-k_Beta1**t))/(cp.sqrt(self.advt_LB/(1-k_Beta2**t))+k_Epsilon))+sLB*k_Lambda)
+                                g_We.fill(0)
+                                g_Wpos.fill(0)
+                                g_Wq.fill(0)
+                                g_Wk.fill(0)
+                                g_Wv.fill(0)
+                                g_Wo.fill(0)
+                                g_MLPW1.fill(0)
+                                g_MLPW2.fill(0)
+                                g_MLPb1.fill(0)
+                                g_MLPb2.fill(0)
+                                g_LNGain.fill(0)
+                                g_LNBias.fill(0)
+                                g_LW.fill(0)
+                                g_LB.fill(0)
+                            search_et = time.perf_counter()
+                            # print(f"loop took {search_et-search_st:.4f} seconds.")
+                        token_stream=token_stream[curr_start:]
 
 
 

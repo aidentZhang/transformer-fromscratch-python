@@ -1,9 +1,13 @@
 from transformer_class import transformer
 import cupy as cp
-
+from params import train_params
 weights = cp.load("./Weights/weights.npz")
 
-from params import train_params
+
+
+
+
+
 num_times=train_params["num_times"]
 
 with open('bpe_rules.txt', 'r', encoding="utf-8") as f:
@@ -34,5 +38,6 @@ with open('bpe_vocablist.txt', 'r', encoding="utf-8") as f:
 loss = 0
 
 model = transformer(weights, rule_list, vocab_list, svocabDict, train_params)
-model.train(60000, 120000, 30000)
+# model.train(60000, 120000, 30000)
+model.train(0, 10, 30000)
 model.run_model()
