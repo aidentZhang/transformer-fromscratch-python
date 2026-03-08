@@ -530,7 +530,7 @@ class transformer:
 
 
                     if(i%10==0):
-                        curr_start =   k_ContextLength-1
+                        curr_start =   0
                         input_batch = []
                         text=token_stream
 
@@ -550,7 +550,6 @@ class transformer:
                                 # print(prediction)
                                 loss, onehot_cache = findLoss(E, input_batch, svocabDict)
                                 backprop(E, E_midln_cache, E_soft_cache, E_lin_cache, E_relu_cache, onehot_cache, E_postln_cache, E_preln_cache, We_to_E, E_conc_cache, Q_cache, K_cache, V_cache)
-                                input_batch = []
                                 loss = cp.array(loss)
                                 t+=1
                                 f.write(f"{cp.mean(loss)}\n")
@@ -569,6 +568,7 @@ class transformer:
                                 g_Wo/=len(input_batch)
                                 g_Wpos/=len(input_batch)
                                 g_We/=len(input_batch)
+                                input_batch = []
 
                                 self.admt_We = k_Beta1*self.admt_We + (1-k_Beta1)*g_We
                                 self.admt_Wpos = k_Beta1*self.admt_Wpos + (1-k_Beta1)*g_Wpos
@@ -649,10 +649,11 @@ class transformer:
         vocab_list=self.vocab_list
         is_hex=self.is_hex
         fowardprop=self.fowardprop
+        BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
 
         while(True):
             q = input("input_llm part of a word, a char, or something: ")
-            q = embed(svocabDict, q)
+            q = embed(svocabDict, q, BYTE_LOOKUP)
             k = len(q)
             print(q) 
             while k < k_ContextLength:
