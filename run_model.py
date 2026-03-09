@@ -18,6 +18,33 @@ sLNBias = weights["sLNBias"]
 sLW = weights["sLW"]
 sLB = weights["sLB"]
 
+
+weight_audit = {
+    "sWe": sWe, "sWpos": sWpos, "sWq": sWq, "sWk": sWk, "sWv": sWv,
+    "sMLPW1": sMLPW1, "sMLPW2": sMLPW2, "sMLPb1": sMLPb1, "sMLPb2": sMLPb2,
+    "sLNGain": sLNGain, "sLNBias": sLNBias, "sLW": sLW, "sLB": sLB
+}
+
+print("--- 🕵️ Weight Integrity Audit ---")
+corrupted = False
+
+for name, W in weight_audit.items():
+    nans = np.isnan(W).sum()
+    infs = np.isinf(W).sum()
+    
+    if nans > 0 or infs > 0:
+        print(f"❌ {name.ljust(8)} | NaNs: {nans:6} | Infs: {infs:6} | !CORRUPTED!")
+        corrupted = True
+    else:
+        # Check for suspiciously large values (Extreme values lead to overflows)
+        max_val = np.max(np.abs(W))
+        print(f"✅ {name.ljust(8)} | Healthy      | Max Abs: {max_val:.4f}")
+
+if corrupted:
+    print("\n🛑 STOP: Your weight file is corrupted. Matmul will continue to fail.")
+else:
+    print("\n✨ All weights are finite. The issue is in the forward pass logic.")
+
 k_VocabSize=len(sWe)
 k_DModel=len(sWe[0])
 k_AttBlocks=len(sWk)
@@ -39,14 +66,14 @@ def layerNorm(E, attLayer, prePostMLP):
     temp = np.nan_to_num((E-np.mean(E, axis = -1, keepdims = True))/np.sqrt((np.nan_to_num(np.var(E, axis = -1, keepdims = True), nan = 0.)+0.00001)))
     return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
 
+
 def softmax(E):
-    return np.nan_to_num(np.exp(E)/(np.exp(E)@np.ones((E.shape[1],1))), nan = 0)
+    exp_ = np.exp(E-np.max(E, axis=-1, keepdims=True))
+    return exp_/(np.sum(exp_, axis=-1, keepdims=True))
 
 def relu(E):
     return np.maximum(0, E)
 
-def relu_deriv(E):
-    return np.minimum(1, E)
 
 def decode(E, svocabList):
     temp = np.argmax(E, axis = -1)
@@ -117,7 +144,7 @@ def fowardprop(input_llm, svocabDict):
     E_lin_cache = np.zeros((k_ContextLength, k_DModel))
     E_relu_cache = np.zeros((k_AttBlocks, k_ContextLength, k_DModel*4))
     
-    sSoftmaxMask = np.where(np.triu(np.ones((k_ContextLength, k_ContextLength)), k=1),-np.inf,0.0)
+    sSoftmaxMask = np.where(np.triu(np.ones((k_ContextLength, k_ContextLength)), k=1),-1e9,0.0)
     padMask = np.zeros((k_ContextLength, k_ContextLength))
     padMask[:, len(input_llm)+1:k_ContextLength] = -np.inf
 
@@ -135,6 +162,17 @@ def fowardprop(input_llm, svocabDict):
     while(i<k_ContextLength):
         We_to_E[i, 2] = 1
         i+=1
+
+        # Insert before E = We_to_E @ sWe
+    if not np.isfinite(We_to_E).all():
+        print("🚨 INPUT ERROR: We_to_E contains non-finite values!")
+        print(f"Indices used: {q}")
+        
+    # Force a clean matmul by checking for zeros
+    if np.all(We_to_E == 0):
+        print("🚨 LOGIC ERROR: We_to_E is completely empty (all zeros)!")
+
+
     E = We_to_E@sWe
 
     i = 0

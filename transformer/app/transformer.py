@@ -35,7 +35,8 @@ class transformer():
         return sLNBias[attLayer, prePostMLP] + temp * (sLNGain[attLayer, prePostMLP]), temp
 
     def softmax(self, E):
-        return np.nan_to_num(np.exp(E)/(np.exp(E)@np.ones((E.shape[1],1))), nan = 0)
+        exp_ = np.exp(E-np.max(E, axis=-1, keepdims=True))
+        return exp_/(np.sum(exp_, axis=-1, keepdims=True))
 
     def relu(self, E):
         return np.maximum(0, E)

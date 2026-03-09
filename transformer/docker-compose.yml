@@ -1,0 +1,9 @@
+services:
+  transformer-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_LWA_INVOKE_MODE=RESPONSE_STREAM
+    volumes:
+      - .:/var/task  # Mounts your code for easy debugging
