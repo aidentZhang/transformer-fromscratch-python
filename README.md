@@ -1,7 +1,13 @@
 # transformer-fromscratch-python
 transformer from scratch without PyTorch or tensorflow just numpy
 
-# THE MOST UPDATE TO DATE BRANCH IS mac-mlx-accel 
+# THE MOST UPDATE TO DATE BRANCH IS win-cuda-accel-wikipedia
+
+will clean up branches later
+
+
+Evernything below is slightly outdated and is for when max-mlx-accel was the most up to date and fastest branch.
+
 But this one will only work on mac. It was the code that ran the fastest for me, since I have a mac, even beating out a 2080 super using Cupy. Other branches don't have the entire shakespeare corpus and suffer from extreme undertraining. 
 
 windows-cuda-accel is a branch optimzed for Nvidia's CUDA. It does not include shakespeare's full corpus and require Cupy and Cuda to be installed.
