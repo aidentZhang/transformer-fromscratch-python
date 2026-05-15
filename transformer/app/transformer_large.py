@@ -8,7 +8,6 @@ import re
 
 
 class transformer_inf_large:
-
     def __init__(self, weights, vocab_list, svocabDict, train_params):
         #PARAM DECLARATIONS
         self.sWe = weights["sWe"]
@@ -46,7 +45,6 @@ class transformer_inf_large:
 
         self.svocabDict=svocabDict
         self.vocab_list=vocab_list
-
  
 
 
@@ -262,7 +260,7 @@ class transformer_inf_large:
         is_hex=self.is_hex
         fowardprop=self.fowardprop
         BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
-
+        self.k_cache = np.zeros(())
         q = embed(svocabDict, q, BYTE_LOOKUP)
         k = len(q)
         # print(q) 
