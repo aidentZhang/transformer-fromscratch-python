@@ -193,15 +193,17 @@ class transformer_inf_large:
             E[i] = We_to_E@sWe*cp.sqrt(k_DModel)
             E[i]+=sWpos
 
-        print(E[0][4])
 
         currAttBlock = 0
         while(currAttBlock < k_AttBlocks):
             E_ln, *_ = layerNorm(E, currAttBlock, 0)
 
+            start = time.perf_counter()
             Q=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWq[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
             K=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWk[currAttBlock], [1, 0, 2]), [k_DModel, k_DKey*k_Attheads]), [k_BatchSize, k_ContextLength, k_Attheads, k_DKey]), [0, 2, 1, 3])
             V=cp.transpose(cp.reshape(E_ln@cp.reshape(cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]), [k_BatchSize, k_ContextLength, k_Attheads, k_DModel//k_Attheads]), [0, 2, 1, 3])
+            end = time.perf_counter()
+            print(f"QKV calculation time for block {currAttBlock}: {end - start:.4f} seconds")
 
             # print(cp.shape(cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])))
             E+= cp.reshape(cp.transpose(softmax(1/cp.sqrt(k_DKey) * Q@cp.transpose(K, [0, 1, 3, 2])+sSoftmaxMask+cp.expand_dims(padMask, axis=1))@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])@sWo[currAttBlock]
@@ -267,6 +269,8 @@ class transformer_inf_large:
         k = len(q)
         # print(q) 
         while k < k_ContextLength:
+            start = time.perf_counter()
+
             E = fowardprop([q], svocabDict, 1, 0.7)
             prediction = decode(E[0], vocab_list)
             # loss, onehot_cache = findLoss(E, q, svocabDict)
@@ -285,4 +289,6 @@ class transformer_inf_large:
             yield(final_text)
             k+=1
 
+            end = time.perf_counter()
+            print(f"Execution time: {end - start:.4f} seconds")
 

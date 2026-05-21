@@ -1,5 +1,5 @@
 import numpy as np
-from transformer_large import transformer_inf_large
+from transformer_large_kv import transformer_inf_large
 
 
 
@@ -12,7 +12,7 @@ train_params = {
     "k_DQuery": 96,
     "num_times": 25000,
     "k_ShiftFactor": 2,
-    "k_BatchSize": 1,
+    "k_BatchSize": 1, #changed a bit
     "k_Alpha": 0.0003,
     "k_Beta1": 0.9,
     "k_Beta2": 0.999,

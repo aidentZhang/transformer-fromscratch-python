@@ -77,6 +77,8 @@ class transformer_inf_large:
 
     # GEMINI WROTE THIS:
     def decode(self, E, svocabList, top_k=1):
+        start = time.perf_counter()
+
         # E is shape (k_ContextLength, k_VocabSize) and already contains probabilities
         temp = cp.zeros(E.shape[0], dtype=cp.int32)
 
@@ -105,9 +107,10 @@ class transformer_inf_large:
             temp[row_idx] = cp.random.choice(len(masked_probs), size=1, p=masked_probs)[
                 0
             ]
-
+        end = time.perf_counter()
+        print(f"top-k time: {end - start:.4f} seconds")
             # 6. Map the sampled IDs back to your vocabulary strings
-
+        start = time.perf_counter()
         answer = []
         for i in temp:
             i = int(i)
@@ -124,7 +127,8 @@ class transformer_inf_large:
                 answer.append("<PAD>")
             else:
                 answer.append("<STA>")
-
+        end = time.perf_counter()
+        print(f"actual decode time: {end - start:.4f} seconds\n")
         return answer
 
     def prefill(self, input_llm):
@@ -159,7 +163,7 @@ class transformer_inf_large:
 
     # ------------------
     # FORWARD PROPAGATE
-    def fowardprop(self, embeddings, padMask, k_BatchSize, k_temp):
+    def fowardprop(self, embeddings, padMask, last_token, k_temp):
         sWe = self.sWe
         sWpos = self.sWpos
         sWq = self.sWq
@@ -171,7 +175,7 @@ class transformer_inf_large:
         k_VocabSize = self.k_VocabSize
         k_Attheads = self.k_Attheads
         k_AttBlocks = self.k_AttBlocks
-
+        k_BatchSize = self.k_BatchSize
         k_DKey = self.k_DKey
 
         sMLPW1 = self.sMLPW1
@@ -180,10 +184,7 @@ class transformer_inf_large:
         sMLPb2 = self.sMLPb2
         sLW = self.sLW
         sLB = self.sLB
-        k_cache = self.k_cache
-        v_cache = self.v_cache
         sSoftmaxMask = self.sSoftmaxMask
-        svocabDict = self.svocabDict
 
         relu = self.relu
         layerNorm = self.layerNorm
@@ -192,7 +193,65 @@ class transformer_inf_large:
         currAttBlock = 0
         while currAttBlock < k_AttBlocks:
             E_ln, *_ = layerNorm(E, currAttBlock, 0)
+            if(self.fill_cache):
+                self.k_cache[currAttBlock] = cp.transpose(
+                    cp.reshape(
+                        E_ln
+                        @ cp.reshape(
+                            cp.transpose(sWk[currAttBlock], [1, 0, 2]),
+                            [k_DModel, k_DKey * k_Attheads],
+                        ),
+                        [k_BatchSize, k_ContextLength, k_Attheads, k_DKey],
+                    ),
+                    [0, 2, 1, 3],
+                )
+                self.v_cache[currAttBlock] = cp.transpose(
+                    cp.reshape(
+                        E_ln
+                        @ cp.reshape(
+                            cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]
+                        ),
+                        [k_BatchSize, k_ContextLength, k_Attheads, k_DModel // k_Attheads],
+                    ),
+                    [0, 2, 1, 3],
+                )
+            start = time.perf_counter()
 
+                #set up aliases
+            K = self.k_cache[currAttBlock]
+            V = self.v_cache[currAttBlock]
+
+            K[:, :, last_token, :] = np.transpose(
+                    cp.reshape(
+                        E_ln[:, last_token, :]
+                        @ cp.reshape(
+                            cp.transpose(sWk[currAttBlock], [1, 0, 2]),
+                            [k_DModel, k_DKey * k_Attheads],
+                        ),
+                        [k_BatchSize, 1, k_Attheads, k_DKey],
+                    ),
+                    [0, 2, 1, 3],
+                ).squeeze(2)
+            V[:, :, last_token, :] = cp.transpose(
+                    cp.reshape(
+                        E_ln[:, last_token, :]
+                        @ cp.reshape(
+                            cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]
+                        ),
+                        [k_BatchSize, 1, k_Attheads, k_DModel // k_Attheads],
+                    ),
+                    [0, 2, 1, 3],
+                ).squeeze(2)
+            # for reference:
+                    # self.k_cache = np.zeros(
+                    #         [self.k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_DKey],
+                    # )
+
+                    # self.v_cache = np.zeros(
+                    #     (
+                    #         [self.k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, self.k_DModel // k_Attheads],
+                    #     )
+                    # )
             Q = cp.transpose(
                 cp.reshape(
                     E_ln
@@ -204,28 +263,11 @@ class transformer_inf_large:
                 ),
                 [0, 2, 1, 3],
             )
-            K = cp.transpose(
-                cp.reshape(
-                    E_ln
-                    @ cp.reshape(
-                        cp.transpose(sWk[currAttBlock], [1, 0, 2]),
-                        [k_DModel, k_DKey * k_Attheads],
-                    ),
-                    [k_BatchSize, k_ContextLength, k_Attheads, k_DKey],
-                ),
-                [0, 2, 1, 3],
-            )
-            V = cp.transpose(
-                cp.reshape(
-                    E_ln
-                    @ cp.reshape(
-                        cp.transpose(sWv[currAttBlock], [1, 0, 2]), [k_DModel, k_DModel]
-                    ),
-                    [k_BatchSize, k_ContextLength, k_Attheads, k_DModel // k_Attheads],
-                ),
-                [0, 2, 1, 3],
-            )
 
+            end = time.perf_counter()
+            print(f"QKV calculation time for block {currAttBlock}: {end - start:.4f} seconds")
+
+            start = time.perf_counter()
             # print(cp.shape(cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])))
             E += (
                 cp.reshape(
@@ -242,17 +284,23 @@ class transformer_inf_large:
                 )
                 @ sWo[currAttBlock]
             )
+            end = time.perf_counter()
+            print(f"Attention calculation time for block {currAttBlock}: {end - start:.4f} seconds")
 
+            start = time.perf_counter()
             E_ln, *_ = layerNorm(E, currAttBlock, 1)
             E += (
                 relu(E_ln @ sMLPW1[currAttBlock] + sMLPb1[currAttBlock])
                 @ sMLPW2[currAttBlock]
                 + sMLPb2[currAttBlock]
             )
+            end = time.perf_counter()
+            print(f"layernorm + MLP calculation time for block {currAttBlock}: {end - start:.4f} seconds")
             currAttBlock += 1
 
         E = E @ sLW + sLB
         E = softmax(E / k_temp)
+        self.fill_cache = False
 
         return E
 
@@ -302,20 +350,19 @@ class transformer_inf_large:
         prefill = self.prefill
         k_BatchSize = self.k_BatchSize
         sWe = self.sWe
+        k_Attheads=self.k_Attheads
+        k_DKey = self.k_DKey
         BYTE_LOOKUP = [f"{i:02x}" for i in range(256)]
 
         self.k_cache = np.zeros(
-            (self.k_AttBlocks, self.k_Attheads, self.k_DModel, self.k_DKey)
-        )
-        self.v_cache = np.zeros(
-            (
-                self.k_AttBlocks,
-                self.k_Attheads,
-                self.k_DModel,
-                self.k_DModel // self.k_Attheads,
-            )
+                [self.k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, k_DKey]
         )
 
+        self.v_cache = np.zeros(
+                [self.k_AttBlocks, k_BatchSize, k_Attheads, k_ContextLength, self.k_DModel // k_Attheads]
+        )
+
+        self.fill_cache = True
         q = [embed(svocabDict, q, BYTE_LOOKUP)]
         #q supports batching if needed to be added in the future
         print("generating padmask ...")
@@ -326,15 +373,24 @@ class transformer_inf_large:
         embeddings = prefill(q)
         print(q)
         k = len(q[0])
+        import time
+
+# ... your code here ...
+
         while k < k_ContextLength:
+            start = time.perf_counter()
 
             padMask = cp.zeros((k_BatchSize, k_ContextLength, k_ContextLength))
             for i in range(k_BatchSize):
                 padMask[i, :, k + 1 : k_ContextLength] = -cp.inf
-            
-            E = fowardprop(embeddings, padMask, 1, 0.7)
+            start = time.perf_counter()
+            E = fowardprop(embeddings, padMask, k, 0.7)
+            end = time.perf_counter()
+            print(f"Forwardprop time: {end - start:.4f} seconds")
+            start = time.perf_counter()
             prediction = decode(E[0], vocab_list)
-
+            end = time.perf_counter()
+            print(f"prediction time: {end - start:.4f} seconds")
             # print(embeddings[0][1])
 
             embeddings[0][k+1] = (cp.sqrt(self.k_DModel) * sWe[svocabDict[prediction[k]]]) + self.sWpos[k+1];
@@ -352,3 +408,6 @@ class transformer_inf_large:
 
 
             k += 1
+
+            end = time.perf_counter()
+            print(f"Execution time: {end - start:.4f} seconds")
