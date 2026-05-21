@@ -272,6 +272,8 @@ class transformer_inf_large:
             start = time.perf_counter()
 
             E = fowardprop([q], svocabDict, 1, 0.7)
+            end = time.perf_counter()
+            print(f"only forwardprop time: {end - start:.4f} seconds")
             prediction = decode(E[0], vocab_list)
             # loss, onehot_cache = findLoss(E, q, svocabDict)
             # print(loss)

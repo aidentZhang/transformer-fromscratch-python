@@ -383,10 +383,10 @@ class transformer_inf_large:
             padMask = cp.zeros((k_BatchSize, k_ContextLength, k_ContextLength))
             for i in range(k_BatchSize):
                 padMask[i, :, k + 1 : k_ContextLength] = -cp.inf
-            start = time.perf_counter()
+            start2 = time.perf_counter()
             E = fowardprop(embeddings, padMask, k, 0.7)
             end = time.perf_counter()
-            print(f"Forwardprop time: {end - start:.4f} seconds")
+            print(f"Forwardprop time: {end - start2:.4f} seconds")
             start = time.perf_counter()
             prediction = decode(E[0], vocab_list)
             end = time.perf_counter()
