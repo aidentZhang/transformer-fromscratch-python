@@ -65,7 +65,7 @@ class transformer_inf_large:
         return (E > 0).astype(cp.float32)
 
     #GEMINI WROTE THIS:
-    def decode(self, E, svocabList, top_k=50):
+    def decode(self, E, svocabList, top_k=1):
         # E is shape (k_ContextLength, k_VocabSize) and already contains probabilities
         temp = cp.zeros(E.shape[0], dtype=cp.int32)
         
@@ -181,7 +181,8 @@ class transformer_inf_large:
             o = 1
             for j in input_llm[i]:
                 if j in svocabDict:
-                    We_to_E[o, [svocabDict[j]]] = 1
+                    We_to_E[o, svocabDict[j]] = 1
+                    #used to have [] wrapped around svocabDict, changed because it was uncessary
                 else:
                     We_to_E[o, k_VocabSize-1] = 1
                 o+=1
@@ -192,6 +193,7 @@ class transformer_inf_large:
             E[i] = We_to_E@sWe*cp.sqrt(k_DModel)
             E[i]+=sWpos
 
+        print(E[0][4])
 
         currAttBlock = 0
         while(currAttBlock < k_AttBlocks):
