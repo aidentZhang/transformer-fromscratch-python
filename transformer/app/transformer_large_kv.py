@@ -53,7 +53,7 @@ class transformer_inf_large:
         self.svocabDict = svocabDict
         self.vocab_list = vocab_list
 
-        print("successfully initialized!")
+        #print("successfully initialized!")
 
     def layerNorm(self, E, attLayer, prePostMLP):
         temp = (E - cp.mean(E, axis=-1, keepdims=True)) / cp.sqrt(
@@ -75,61 +75,34 @@ class transformer_inf_large:
     def relu_deriv(self, E):
         return (E > 0).astype(cp.float32)
 
-    # GEMINI WROTE THIS:
-    def decode(self, E, svocabList, top_k=1):
+    #decode currently is only designed for individual queries, no batches yet
+    def decode_inf(self, E, svocabList, ind, min_p = 0):
         start = time.perf_counter()
+        rw = E[ind]
+        rw[rw < (np.max(rw))*min_p] = 0
+        
+        rw/=np.sum(rw)
 
-        # E is shape (k_ContextLength, k_VocabSize) and already contains probabilities
-        temp = cp.zeros(E.shape[0], dtype=cp.int32)
-
-        # We must sample row by row because cp.random.choice requires a 1D probability array
-        for row_idx in range(E.shape[0]):
-            row_probs = E[row_idx]
-
-            # 1. Get the indices of the top K probabilities
-            top_k_indices = cp.argsort(row_probs)[-top_k:]
-
-            # 2. Create a blank mask of zeros
-            masked_probs = cp.zeros_like(row_probs)
-
-            # 3. Copy only the top K probabilities into the mask
-            masked_probs[top_k_indices] = row_probs[top_k_indices]
-
-            # 4. Re-normalize the probabilities so they sum to 1.0
-            sum_probs = cp.sum(masked_probs)
-            if sum_probs > 0:
-                masked_probs = masked_probs / sum_probs
-            else:
-                # Fallback just in case of rounding errors
-                masked_probs[top_k_indices] = 1.0 / top_k
-
-            # 5. Sample the token based on the filtered probabilities (added size=1)[0]
-            temp[row_idx] = cp.random.choice(len(masked_probs), size=1, p=masked_probs)[
-                0
-            ]
         end = time.perf_counter()
-        print(f"top-k time: {end - start:.4f} seconds")
+        #print(f"top-k time: {end - start:.4f} seconds")
             # 6. Map the sampled IDs back to your vocabulary strings
         start = time.perf_counter()
-        answer = []
-        for i in temp:
-            i = int(i)
-            if i > 3:
-                if i - 4 >= len(svocabList):
-                    answer.append("<NA>")
-                else:
-                    answer.append(svocabList[i - 4])
-            elif i == 3:
-                answer.append(" ")
-            elif i == 1:
-                answer.append("<END>")
-            elif i == 2:
-                answer.append("<PAD>")
+
+        i = np.random.choice(a=self.k_VocabSize, p=rw)
+        if i > 3:
+            if i - 4 >= len(svocabList):
+                return "<NA>"
             else:
-                answer.append("<STA>")
-        end = time.perf_counter()
-        print(f"actual decode time: {end - start:.4f} seconds\n")
-        return answer
+                return svocabList[i - 4]
+        elif i == 3:
+            return " "
+        elif i == 1:
+            return "<END>"
+        elif i == 2:
+            return "<PAD>"
+        else:
+            return "<STA>"
+
 
     def prefill(self, input_llm):
         k_BatchSize = self.k_BatchSize
@@ -265,10 +238,10 @@ class transformer_inf_large:
             )
 
             end = time.perf_counter()
-            print(f"QKV calculation time for block {currAttBlock}: {end - start:.4f} seconds")
+            #print(f"QKV calculation time for block {currAttBlock}: {end - start:.4f} seconds")
 
             start = time.perf_counter()
-            # print(cp.shape(cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])))
+            # #print(cp.shape(cp.reshape(cp.transpose(E_soft_cache[currAttBlock]@(V), [0, 2, 1, 3]), [k_BatchSize, k_ContextLength, k_DModel])))
             E += (
                 cp.reshape(
                     cp.transpose(
@@ -285,7 +258,7 @@ class transformer_inf_large:
                 @ sWo[currAttBlock]
             )
             end = time.perf_counter()
-            print(f"Attention calculation time for block {currAttBlock}: {end - start:.4f} seconds")
+            #print(f"Attention calculation time for block {currAttBlock}: {end - start:.4f} seconds")
 
             start = time.perf_counter()
             E_ln, *_ = layerNorm(E, currAttBlock, 1)
@@ -295,7 +268,7 @@ class transformer_inf_large:
                 + sMLPb2[currAttBlock]
             )
             end = time.perf_counter()
-            print(f"layernorm + MLP calculation time for block {currAttBlock}: {end - start:.4f} seconds")
+            #print(f"layernorm + MLP calculation time for block {currAttBlock}: {end - start:.4f} seconds")
             currAttBlock += 1
 
         E = E @ sLW + sLB
@@ -323,7 +296,7 @@ class transformer_inf_large:
             i = 0
             last = len(word)
             while i != len(word):
-                # print(word, " ", i,  " ", last, " ", ''.join(word[i:last]))
+                # #print(word, " ", i,  " ", last, " ", ''.join(word[i:last]))
                 if "".join(word[i:last]) in svocabDict:
                     embeded.append("".join(word[i:last]))
                     i = last
@@ -339,11 +312,11 @@ class transformer_inf_large:
         return all(c in string.hexdigits for c in s)
 
     def run_model(self, q):
-        print("running inference ...")
+        #print("running inference ...")
         embed = self.embed
         svocabDict = self.svocabDict
         k_ContextLength = self.k_ContextLength
-        decode = self.decode
+        decode_inf = self.decode_inf
         vocab_list = self.vocab_list
         is_hex = self.is_hex
         fowardprop = self.fowardprop
@@ -365,13 +338,13 @@ class transformer_inf_large:
         self.fill_cache = True
         q = [embed(svocabDict, q, BYTE_LOOKUP)]
         #q supports batching if needed to be added in the future
-        print("generating padmask ...")
+        #print("generating padmask ...")
         padMask = cp.zeros((k_BatchSize, k_ContextLength, k_ContextLength))
         for i in range(k_BatchSize):
             padMask[i, :, len(q[i]) + 1 : k_ContextLength] = -cp.inf
 
         embeddings = prefill(q)
-        print(q)
+        #print(q)
         k = len(q[0])
         import time
 
@@ -386,15 +359,15 @@ class transformer_inf_large:
             start2 = time.perf_counter()
             E = fowardprop(embeddings, padMask, k, 0.7)
             end = time.perf_counter()
-            print(f"Forwardprop time: {end - start2:.4f} seconds")
+            #print(f"Forwardprop time: {end - start2:.4f} seconds")
             start = time.perf_counter()
-            prediction = decode(E[0], vocab_list)
+            prediction = decode_inf(E[0], vocab_list, k)
             end = time.perf_counter()
-            print(f"prediction time: {end - start:.4f} seconds")
-            # print(embeddings[0][1])
-
-            embeddings[0][k+1] = (cp.sqrt(self.k_DModel) * sWe[svocabDict[prediction[k]]]) + self.sWpos[k+1];
-            text = prediction[k].split("</w>")
+            #print(f"prediction time: {end - start:.4f} seconds")
+            # #print(embeddings[0][1])
+            if(k != k_ContextLength-1):
+                embeddings[0][k+1] = (cp.sqrt(self.k_DModel) * sWe[svocabDict[prediction]]) + self.sWpos[k+1];
+            text = prediction.split("</w>")
             post_processed = [
                 bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
                 for word in text
@@ -403,11 +376,11 @@ class transformer_inf_large:
             final_text = " ".join(post_processed)
             if final_text == "<EOS>":
                 break
-            # print(final_text)
+            # #print(final_text)
             yield (final_text)
 
 
             k += 1
 
             end = time.perf_counter()
-            print(f"Execution time: {end - start:.4f} seconds")
+            #print(f"Execution time: {end - start:.4f} seconds")

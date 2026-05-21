@@ -1,5 +1,5 @@
 import numpy as np
-from transformer_large import transformer_inf_large
+from transformer_large_kv import transformer_inf_large
 
 
 
@@ -18,7 +18,7 @@ train_params = {
     "k_Beta2": 0.999,
     "k_Epsilon": 0.0002,
     "k_Lambda": 0.01,
-    "k_Temp": 0.9
+    "k_Temp": 1
 }
 
 
@@ -26,9 +26,9 @@ train_params = {
 svocabDict = {}
 vocab_list = []
 svocabDict[" "] = 3
-svocabDict["END_TOKEN"] = 1
-svocabDict["START_TOKEN"] = 0
-svocabDict["PAD_TOKEN"] = 2
+svocabDict["<END>"] = 1
+svocabDict["<STA>"] = 0
+svocabDict["<PAD>"] = 2
 WEIGHTS_W = np.load("/Users/aidenzhang/Documents/machine_learning/transformer-fromscratch-python/transformer/app/Weights/weights_w.npz")
 
 
@@ -45,7 +45,7 @@ loss = 0
 # Initialize the model once
 MODEL_W = transformer_inf_large(WEIGHTS_W, vocab_list, svocabDict, train_params)
 
-for word in MODEL_W.run_model("France is the"):
+for word in MODEL_W.run_model("Cheese is the"):
     print(word, flush = True, end = "")
 
 # @app.get("/run_inference_s/{seed}")
