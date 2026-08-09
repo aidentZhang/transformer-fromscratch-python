@@ -45,7 +45,7 @@ loss = 0
 # Initialize the model once
 MODEL_W = transformer_inf_large(WEIGHTS_W, vocab_list, svocabDict, train_params)
 
-for word in MODEL_W.run_model("Cheese is the"):
+for word in MODEL_W.run_model("World war 2"):
     print(word, flush = True, end = "")
 
 # @app.get("/run_inference_s/{seed}")

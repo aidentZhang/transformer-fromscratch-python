@@ -75,20 +75,35 @@ class transformer_inf_large:
     def relu_deriv(self, E):
         return (E > 0).astype(cp.float32)
 
-    #decode currently is only designed for individual queries, no batches yet
-    def decode_inf(self, E, svocabList, ind, min_p = 0):
+    #decode currently is only designed for individual queries, no batches yet using min_p
+    def decode_inf(self, E, svocabList, ind, min_p = 0.05):
         start = time.perf_counter()
+
+        if (self.ngram_last, self.ngram_second_last) in self.ngram_dict:
+            for ngram_word in self.ngram_dict.get((self.ngram_last, self.ngram_second_last)):
+                E[ind][ngram_word] = 0
+        
         rw = E[ind]
         rw[rw < (np.max(rw))*min_p] = 0
+
         
         rw/=np.sum(rw)
 
         end = time.perf_counter()
         #print(f"top-k time: {end - start:.4f} seconds")
-            # 6. Map the sampled IDs back to your vocabulary strings
         start = time.perf_counter()
 
         i = np.random.choice(a=self.k_VocabSize, p=rw)
+
+        if (self.ngram_last, self.ngram_second_last) not in self.ngram_dict:
+            self.ngram_dict[(self.ngram_last, self.ngram_second_last)] = []
+        
+        self.ngram_dict[(self.ngram_last, self.ngram_second_last)].append(i)
+
+        self.ngram_second_last= self.ngram_last
+        self.ngram_last = i
+
+
         if i > 3:
             if i - 4 >= len(svocabList):
                 return "<NA>"
@@ -348,8 +363,10 @@ class transformer_inf_large:
         k = len(q[0])
         import time
 
-# ... your code here ...
-
+        self.ngram_dict = {}
+        self.ngram_last = -1
+        self.ngram_second_last = -1
+        prev_word = ""
         while k < k_ContextLength:
             start = time.perf_counter()
 
@@ -357,7 +374,7 @@ class transformer_inf_large:
             for i in range(k_BatchSize):
                 padMask[i, :, k + 1 : k_ContextLength] = -cp.inf
             start2 = time.perf_counter()
-            E = fowardprop(embeddings, padMask, k, 0.7)
+            E = fowardprop(embeddings, padMask, k, 0.8)
             end = time.perf_counter()
             #print(f"Forwardprop time: {end - start2:.4f} seconds")
             start = time.perf_counter()
@@ -367,19 +384,27 @@ class transformer_inf_large:
             # #print(embeddings[0][1])
             if(k != k_ContextLength-1):
                 embeddings[0][k+1] = (cp.sqrt(self.k_DModel) * sWe[svocabDict[prediction]]) + self.sWpos[k+1];
+            a = False
+            if "</w>" in prediction: 
+                a = True
             text = prediction.split("</w>")
-            post_processed = [
-                bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
-                for word in text
-            ]
-
-            final_text = " ".join(post_processed)
-            if final_text == "<EOS>":
+            try:
+                post_processed = [
+                    bytes.fromhex(word).decode("utf-8") if is_hex(word) else word
+                    for word in text
+                ]
+            except:
+                yield("\naiden gpt ran into a little bug that happens once in a blue moon please excuse the interruption but keep playing with it thanks")
                 break
-            # #print(final_text)
-            yield (final_text)
 
+            post_processed = post_processed[0]
+            if post_processed == "<EOS>":
+                break
+            if post_processed != "." and post_processed != "," and prev_word != "'" and post_processed != "'" and a:
+                post_processed = " "+post_processed
+            yield(post_processed)
 
+            prev_word = post_processed
             k += 1
 
             end = time.perf_counter()
