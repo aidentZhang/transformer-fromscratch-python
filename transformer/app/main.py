@@ -105,8 +105,4 @@ async def run_inference(seed: str):
 
 @app.get("/run_inference_2_5/{seed}")
 async def run_inference_2_5(seed: str):
-    return StreamingResponse(generate_output_2_5(seed), media_type="text/plain")
-
-async def generate_output_2_5(seed: str):
-    for token in MODEL_2_5.run_model(seed):
-        yield token
+    return StreamingResponse(MODEL_2_5.run_model(seed), media_type="text/plain")
