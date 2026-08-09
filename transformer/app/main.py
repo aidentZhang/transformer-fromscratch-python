@@ -69,7 +69,10 @@ loss = 0
 # Initialize the model once
 MODEL_S = transformer(WEIGHTS_S, RULE_LIST_S, VOCAB_LIST_S, SVOCAB_DICT_S, NUM_TIMES_S)
 MODEL_W = transformer_inf_large(WEIGHTS_W, vocab_list, svocabDict, train_params)
-MODEL_2_5 = transformer_inf_large_kv(WEIGHTS_W, vocab_list, svocabDict, train_params)
+# The KV model sizes its caches and pad masks from k_BatchSize; serving is
+# single-request, so it must be 1 here (32 is the training value and makes
+# run_model index past the batch-of-1 input).
+MODEL_2_5 = transformer_inf_large_kv(WEIGHTS_W, vocab_list, svocabDict, {**train_params, "k_BatchSize": 1})
 
 # import time
 # import asyncio
