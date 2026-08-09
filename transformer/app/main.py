@@ -69,8 +69,7 @@ loss = 0
 # Initialize the model once
 MODEL_S = transformer(WEIGHTS_S, RULE_LIST_S, VOCAB_LIST_S, SVOCAB_DICT_S, NUM_TIMES_S)
 MODEL_W = transformer_inf_large(WEIGHTS_W, vocab_list, svocabDict, train_params)
-MODEL_2_5 = transformer_inf_large_kv(WEIGHTS_W, vocab_list, svocabDict, train_params)
-
+MODEL_2_5 = transformer_inf_large_kv(WEIGHTS_W, vocab_list, svocabDict, {**train_params, "k_BatchSize": 1})
 # import time
 # import asyncio
 async def generate_output_shakespeare(seed: str):
