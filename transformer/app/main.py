@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from app.transformer import transformer # Ensure this is your optimized version
 from app.transformer_large import transformer_inf_large
+from app.transformer_large_kv import transformer_inf_large as transformer_inf_large_kv
 app = FastAPI()
 
 # --- Load Everything Globally for Warm Starts ---
@@ -68,6 +69,7 @@ loss = 0
 # Initialize the model once
 MODEL_S = transformer(WEIGHTS_S, RULE_LIST_S, VOCAB_LIST_S, SVOCAB_DICT_S, NUM_TIMES_S)
 MODEL_W = transformer_inf_large(WEIGHTS_W, vocab_list, svocabDict, train_params)
+MODEL_2_5 = transformer_inf_large_kv(WEIGHTS_W, vocab_list, svocabDict, train_params)
 
 # import time
 # import asyncio
@@ -100,3 +102,11 @@ async def run_inference(seed: str):
 @app.get("/run_inference_w/{seed}")
 async def run_inference(seed: str):
     return StreamingResponse(MODEL_W.run_model(seed), media_type="text/plain")
+
+@app.get("/run_inference_2_5/{seed}")
+async def run_inference_2_5(seed: str):
+    return StreamingResponse(generate_output_2_5(seed), media_type="text/plain")
+
+async def generate_output_2_5(seed: str):
+    for token in MODEL_2_5.run_model(seed):
+        yield token
